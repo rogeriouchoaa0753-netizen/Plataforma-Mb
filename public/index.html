@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Lateral (apenas quando logado) -->
+        <div id="sidebarMenu" class="sidebar" style="display: none;">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="menu-item" data-section="inicio">
+                    <span>🏠</span> Início
+                </a>
+                <a href="#" class="menu-item active" data-section="perfil">
+                    <span>👤</span> Meu Perfil
+                </a>
+                <a href="#" class="menu-item" data-section="admin" id="menuAdmin" style="display: none;">
+                    <span>⚙️</span> Administração
+                </a>
+                <a href="#" class="menu-item" data-section="config" id="menuConfig" style="display: none;">
+                    <span>🔧</span> Configuração
+                </a>
+                <a href="#" class="menu-item" data-section="logout" id="menuLogout">
+                    <span>🚪</span> Sair
+                </a>
+            </nav>
+        </div>
+
+        <div class="form-container">
+            <h1 id="pageTitle">Sistema de Login</h1>
+            
+            <!-- Formulário de Login -->
+            <div id="loginForm" class="form-section active">
+                <h2>Login</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginSenha">Senha:</label>
+                        <input type="password" id="loginSenha" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <p class="switch-form">
+                    Não tem uma conta? <a href="#" id="showRegister">Cadastre-se</a>
+                </p>
+            </div>
+
+            <!-- Formulário de Registro -->
+            <div id="registerForm" class="form-section">
+                <h2>Registro</h2>
+                <form id="registerFormElement">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="registerOcupacao">Ocupação *:</label>
+                            <select id="registerOcupacao" required>
+                                <option value="">Carregando ocupações...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="registerIgreja">Igreja:</label>
+                            <select id="registerIgreja">
+                                <option value="">Carregando igrejas...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerNome">Nome:</label>
+                        <input type="text" id="registerNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email:</label>
+                        <input type="email" id="registerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerCpf">CPF *:</label>
+                        <input type="text" id="registerCpf" placeholder="000.000.000-00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerSenha">Senha:</label>
+                        <input type="password" id="registerSenha" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                </form>
+                <p class="switch-form">
+                    Já tem uma conta? <a href="#" id="showLogin">Faça login</a>
+                </p>
+            </div>
+
+            <!-- Formulário de Perfil Completo -->
+            <div id="perfilCompletoForm" class="form-section" style="display: none;">
+                <h2>Complete seu Perfil</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    Preencha seus dados para continuar
+                </p>
+                <form id="perfilCompletoFormElement">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="perfilOcupacao">Ocupação *:</label>
+                            <select id="perfilOcupacao" required>
+                                <option value="">Carregando ocupações...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="perfilIgreja">Igreja:</label>
+                            <select id="perfilIgreja">
+                                <option value="">Carregando igrejas...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomeCompleto">Nome Completo *:</label>
+                        <input type="text" id="nomeCompleto" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cpf">CPF *:</label>
+                        <input type="text" id="cpf" placeholder="000.000.000-00" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                        <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">CPF não pode ser alterado após o cadastro</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="endereco">Endereço *:</label>
+                        <input type="text" id="endereco" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cep">CEP:</label>
+                        <input type="text" id="cep" placeholder="00000-000">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone para Contato *:</label>
+                        <input type="text" id="telefone" placeholder="(00) 00000-0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="estadoCivil">Estado Civil *:</label>
+                        <select id="estadoCivil" required>
+                            <option value="">Selecione...</option>
+                            <option value="solteiro">Solteiro(a)</option>
+                            <option value="casado">Casado(a)</option>
+                            <option value="viuvo">Viúvo(a)</option>
+                            <option value="divorciado">Divorciado(a)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="temFilhos">Tem filhos? *:</label>
+                        <select id="temFilhos" required>
+                            <option value="">Selecione...</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div id="quantidadeFilhosGroup" class="form-group" style="display: none;">
+                        <label for="quantidadeFilhos">Quantos filhos? *:</label>
+                        <select id="quantidadeFilhos" required>
+                            <option value="">Selecione a quantidade...</option>
+                            <option value="1">1 filho</option>
+                            <option value="2">2 filhos</option>
+                            <option value="3">3 filhos</option>
+                            <option value="4">4 filhos</option>
+                            <option value="5">5 filhos</option>
+                            <option value="6">6 filhos</option>
+                            <option value="7">7 filhos</option>
+                            <option value="8">8 filhos</option>
+                            <option value="9">9 filhos</option>
+                            <option value="10">10 filhos</option>
+                        </select>
+                    </div>
+                    <div id="camposFilhos" style="display: none; margin-top: 20px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">Dados dos Filhos</h3>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                            Você pode preencher manualmente ou buscar por ID de um cadastro existente
+                        </p>
+                        <div id="listaFilhos"></div>
+                    </div>
+                    
+                    <!-- Seção de Relacionamentos -->
+                    <div id="relacionamentosSection" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">Relacionamentos</h3>
+                        
+                        <!-- Cônjuge -->
+                        <div id="conjugeSection" style="margin-bottom: 20px;">
+                            <h4 style="font-size: 16px; margin-bottom: 10px;">Cônjuge</h4>
+                            <div id="conjugeInfo" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;"></div>
+                            <div id="buscarConjuge" style="display: none;">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Buscar por:</label>
+                                    <select id="tipoBuscaConjuge" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; margin-bottom: 10px;">
+                                        <option value="cpf">CPF</option>
+                                        <option value="id">ID do Cadastro</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                                    <input type="text" id="buscarConjugeCpf" placeholder="CPF do cônjuge" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
+                                    <input type="number" id="buscarConjugeId" placeholder="ID do cadastro" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; display: none;">
+                                    <button type="button" id="btnBuscarConjuge" class="btn btn-primary" style="width: auto; padding: 8px 15px;">Buscar</button>
+                                    <button type="button" id="cancelarBuscarConjuge" class="btn btn-secondary" style="width: 40px; padding: 8px;">✕</button>
+                                </div>
+                                <div id="resultadoBuscaConjuge" style="margin-top: 10px;"></div>
+                            </div>
+                            <button type="button" id="btnAdicionarConjuge" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">Adicionar Cônjuge</button>
+                        </div>
+
+                        <!-- Filhos -->
+                        <div id="filhosSection">
+                            <h4 style="font-size: 16px; margin-bottom: 10px;">Filhos</h4>
+                            <div id="filhosList"></div>
+                            <div id="buscarFilho" style="display: none; margin-top: 10px;">
+                                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                                    <input type="text" id="buscarFilhoCpf" placeholder="CPF do filho" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
+                                    <input type="number" id="buscarFilhoId" placeholder="ID do cadastro" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; display: none;">
+                                    <button type="button" id="btnBuscarFilho" class="btn btn-primary" style="width: auto; padding: 8px 15px;">Buscar</button>
+                                    <button type="button" id="cancelarBuscarFilho" class="btn btn-secondary" style="width: 40px; padding: 8px;">✕</button>
+                                </div>
+                                <div id="resultadoBuscaFilho" style="margin-top: 10px;"></div>
+                            </div>
+                            <button type="button" id="btnAdicionarFilho" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">Adicionar Filho</button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar Perfil</button>
+                        <button type="button" id="cancelarPerfilCompleto" class="btn btn-secondary" style="width: 50px; padding: 12px;">✕</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Área Início (Calendário e Programações) -->
+            <div id="inicioSection" class="form-section" style="display: none;">
+                <!-- Calendário com design melhorado (OCULTO) -->
+                <div id="calendarioWrapper" style="display: none; background: white; padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e0e0e0;">
+                    <!-- Controles do Calendário -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0;">
+                        <button id="btnMesAnterior" class="btn-calendario-nav" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                            <span style="font-size: 18px;">←</span> Anterior
+                        </button>
+                        <h3 id="mesAnoAtual" style="margin: 0; color: #667eea; font-size: 22px; font-weight: 700; text-align: center; flex: 1;"></h3>
+                        <button id="btnProximoMes" class="btn-calendario-nav" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                            Próximo <span style="font-size: 18px;">→</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Calendário -->
+                    <div id="calendarioContainer" style="max-width: 900px; margin: 0 auto;">
+                        <div id="calendarioGrid" class="calendario-grid-moderno"></div>
+                    </div>
+                </div>
+                
+                <!-- Aniversariantes do Mês (oculto - movido para aba Programações Passadas) -->
+                <div id="aniversariantesContainer" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                    <h3 style="color: #856404; margin-bottom: 10px;">🎂 Aniversariantes do Mês</h3>
+                    <div id="listaAniversariantes"></div>
+                </div>
+                
+                <!-- Filtros de Programações -->
+                <div id="filtrosProgramacoes" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e0e0e0;">
+                    <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 16px; display: flex; align-items: center;">
+                        <span style="font-size: 20px; margin-right: 8px;">🔍</span> Filtrar Programações
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div>
+                            <label for="filtroIgrejaProgramacao" style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Igreja:</label>
+                            <select id="filtroIgrejaProgramacao" style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 13px;">
+                                <option value="">Todas as igrejas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filtroCodigoProgramacao" style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Código:</label>
+                            <div style="position: relative;">
+                                <input type="text" id="filtroCodigoProgramacao" placeholder="Ex: PRG-2025-001" style="width: 100%; padding: 8px 35px 8px 8px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 13px;">
+                                <button id="btnPesquisarCodigo" type="button" class="btn btn-primary" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 5px 10px; font-size: 14px; border-radius: 4px; display: none; cursor: pointer; background: #667eea; color: white; border: none;">
+                                    🔍
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="filtroTituloProgramacao" style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">Nome/Título:</label>
+                            <div style="position: relative;">
+                                <input type="text" id="filtroTituloProgramacao" placeholder="Buscar por título..." style="width: 100%; padding: 8px 35px 8px 8px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 13px;">
+                                <button id="btnPesquisarTitulo" type="button" class="btn btn-primary" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 5px 10px; font-size: 14px; border-radius: 4px; display: none; cursor: pointer; background: #667eea; color: white; border: none;">
+                                    🔍
+                                </button>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-end; gap: 8px;">
+                            <button id="btnPesquisarFiltros" type="button" class="btn btn-primary" style="flex: 1; padding: 8px; font-size: 13px; display: none;">
+                                🔍 Pesquisar
+                            </button>
+                            <button id="btnLimparFiltrosProgramacao" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 13px;">
+                                🔄 Limpar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botão para criar programação/solicitação -->
+                <div style="margin-bottom: 20px;">
+                    <button id="btnCriarProgramacao" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
+                        ➕ Criar Programação
+                    </button>
+                </div>
+                
+                <!-- Modal para criar programação (admin) ou solicitação (usuário comum) -->
+                <div id="modalCriarProgramacao" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+                    <div style="background: white; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;">
+                        <button id="fecharModalProgramacao" style="position: absolute; top: 15px; right: 15px; background: #f44336; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10001;">✕</button>
+                        
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 12px 12px 0 0; color: white;">
+                            <h2 id="tituloFormProgramacao" style="margin: 0; font-size: 18px; font-weight: bold;"></h2>
+                        </div>
+                        
+                        <div style="padding: 15px;">
+                            <form id="formProgramacaoElement">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="programacaoTitulo" style="font-size: 13px; margin-bottom: 4px; display: block;">Título do Evento *:</label>
+                            <input type="text" id="programacaoTitulo" required style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="programacaoDescricao" style="font-size: 13px; margin-bottom: 4px; display: block;">Descrição:</label>
+                            <textarea id="programacaoDescricao" rows="2" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="programacaoData" style="font-size: 13px; margin-bottom: 4px; display: block;">Data Início *:</label>
+                                <input type="date" id="programacaoData" required style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="programacaoDataFim" style="font-size: 13px; margin-bottom: 4px; display: block;">Data Fim:</label>
+                                <input type="date" id="programacaoDataFim" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="programacaoHora" style="font-size: 13px; margin-bottom: 4px; display: block;">Hora:</label>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <select id="programacaoHoraHora" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px; cursor: pointer; background: white;">
+                                        <option value="">--</option>
+                                    </select>
+                                    <span style="font-size: 16px; font-weight: bold; color: #667eea;">:</span>
+                                    <select id="programacaoHoraMinuto" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px; cursor: pointer; background: white;">
+                                        <option value="">--</option>
+                                    </select>
+                                    <input type="hidden" id="programacaoHora">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="programacaoLocal" style="font-size: 13px; margin-bottom: 4px; display: block;">Local / Igreja:</label>
+                                <select id="programacaoLocal" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+                                    <option value="">Selecione uma igreja...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="programacaoLocalTexto" style="font-size: 12px; color: #666; margin-bottom: 4px; display: block;">Ou informe outro local:</label>
+                            <input type="text" id="programacaoLocalTexto" placeholder="Ex: Salão de eventos..." style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="programacaoObservacoes" style="font-size: 13px; color: #666; margin-bottom: 4px; display: block;">
+                                Observações (opcional):
+                            </label>
+                            <textarea id="programacaoObservacoes" rows="2" placeholder="Detalhes adicionais..." style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                        </div>
+                        
+                        <!-- Seção de Vincular Membros -->
+                        <div id="secaoVincularMembros" style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e0e0e0;">
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <input type="checkbox" id="ativarVinculoMembros" style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer;">
+                                <label for="ativarVinculoMembros" style="font-weight: bold; color: #667eea; cursor: pointer; margin: 0; font-size: 13px;">
+                                    Vincular Membros
+                                </label>
+                            </div>
+                            <div id="opcoesVinculoMembros" style="display: none;">
+                                <div class="form-group" style="margin-bottom: 10px;">
+                                    <label for="programacaoHorarioVinculo" style="font-size: 12px; color: #666;">
+                                        <input type="checkbox" id="programacaoHorarioVinculo" style="width: 16px; height: 16px; margin-right: 6px; cursor: pointer;">
+                                        Horário específico para membros
+                                    </label>
+                                </div>
+                                <div id="horarioVinculoContainer" style="display: none; margin-bottom: 10px;">
+                                    <label for="programacaoHoraVinculo" style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Horário Membros:</label>
+                                    <div style="display: flex; gap: 6px; align-items: center; max-width: 180px;">
+                                        <select id="programacaoHoraVinculoHora" style="flex: 1; padding: 6px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                            <option value="">--</option>
+                                        </select>
+                                        <span style="font-size: 14px; font-weight: bold; color: #667eea;">:</span>
+                                        <select id="programacaoHoraVinculoMinuto" style="flex: 1; padding: 6px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                            <option value="">--</option>
+                                        </select>
+                                        <input type="hidden" id="programacaoHoraVinculo">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Selecionar Membros:</label>
+                                    <div id="listaMembrosVinculo" style="max-height: 150px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 5px; padding: 8px; background: white;">
+                                        <p style="color: #999; font-size: 12px; margin: 0;">Carregando membros...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                                    <button type="submit" class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 13px;">Salvar</button>
+                                    <button type="button" id="cancelarProgramacao" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 13px;">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sistema de Tabs para Programações -->
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 20px; color: #667eea; font-size: 20px; font-weight: bold;">Gerenciar Programações</h3>
+                    
+                    <!-- Abas -->
+                    <div class="tabs-container" style="margin-bottom: 20px;">
+                        <button class="tab-button active" data-tab="programacoes" id="tabProgramacoes">Programações Aprovadas</button>
+                        <button class="tab-button" data-tab="programacoesPassadas" id="tabProgramacoesPassadas">Programações Passadas</button>
+                        <button class="tab-button" data-tab="solicitacoes" id="tabSolicitacoes" style="display: none;">Solicitações Pendentes</button>
+                        <button class="tab-button" data-tab="minhasSolicitacoes" id="tabMinhasSolicitacoes" style="display: none;">Minhas Solicitações</button>
+                    </div>
+                    
+                    <!-- Conteúdo das Abas -->
+                    <div id="tabContentProgramacoes">
+                        <!-- Aba Programações Aprovadas -->
+                        <div id="tabContentProgramacoesAprovadas" class="tab-content active">
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #667eea;">
+                                    <h4 style="margin: 0; color: #667eea; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                        <span style="font-size: 22px; margin-right: 10px;">📅</span> Programações Aprovadas do Mês
+                                    </h4>
+                                    <span id="contadorProgramacoes" style="background: #667eea; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
+                                </div>
+                                <div id="listaProgramacoes"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aba Solicitações Pendentes (apenas admin) -->
+                        <div id="tabContentSolicitacoesPendentes" class="tab-content">
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #ffc107;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #ffc107;">
+                                    <h4 style="margin: 0; color: #ff9800; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                        <span style="font-size: 22px; margin-right: 10px;">⏳</span> Solicitações Pendentes
+                                    </h4>
+                                    <span id="contadorSolicitacoes" style="background: #ffc107; color: #856404; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
+                                </div>
+                                <div id="listaSolicitacoes"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aba Programações Passadas -->
+                        <div id="tabContentProgramacoesPassadas" class="tab-content">
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #757575;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #757575;">
+                                    <h4 style="margin: 0; color: #757575; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                        <span style="font-size: 22px; margin-right: 10px;">📜</span> Programações Passadas
+                                    </h4>
+                                    <span id="contadorProgramacoesPassadas" style="background: #757575; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
+                                </div>
+                                <div id="listaProgramacoesPassadas"></div>
+                            </div>
+                            
+                            <!-- Aniversariantes do Mês -->
+                            <div style="background: #fff3cd; padding: 20px; border-radius: 12px; margin-top: 25px; border-left: 4px solid #ffc107; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h3 style="color: #856404; margin-bottom: 15px; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                    <span style="font-size: 24px; margin-right: 10px;">🎂</span> Aniversariantes do Mês
+                                </h3>
+                                <div id="listaAniversariantesPassadas"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aba Minhas Solicitações (usuários comuns) -->
+                        <div id="tabContentMinhasSolicitacoes" class="tab-content">
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #667eea;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #667eea;">
+                                    <h4 style="margin: 0; color: #667eea; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                        <span style="font-size: 22px; margin-right: 10px;">📋</span> Minhas Solicitações
+                                    </h4>
+                                    <span id="contadorMinhasSolicitacoes" style="background: #667eea; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
+                                </div>
+                                <div id="listaMinhasSolicitacoes"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área do Perfil (após login) -->
+            <div id="profileSection" class="form-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Meu Perfil</h2>
+                    <button id="btnEditarPerfil" class="btn btn-primary" style="width: auto; padding: 10px 20px;">✏️ Editar</button>
+                </div>
+                <div id="userInfo"></div>
+            </div>
+
+            <!-- Área Administrativa -->
+            <div id="adminSection" class="form-section" style="display: none;">
+                <h2>Área Administrativa</h2>
+                <p style="color: #666; margin-bottom: 20px;">Visualize e gerencie todos os membros cadastrados</p>
+                
+                <!-- Filtros -->
+                <div id="filtrosAdmin" style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px; margin-bottom: 3px; color: #666;">Igreja:</label>
+                            <select id="filtroIgreja" style="width: 100%; padding: 8px; font-size: 14px;">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px; margin-bottom: 3px; color: #666;">Ocupação:</label>
+                            <select id="filtroOcupacao" style="width: 100%; padding: 8px; font-size: 14px;">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px; margin-bottom: 3px; color: #666;">ID:</label>
+                            <input type="text" id="filtroId" placeholder="ID" style="width: 100%; padding: 8px; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px; margin-bottom: 3px; color: #666;">Nome:</label>
+                            <input type="text" id="filtroNome" placeholder="Nome" style="width: 100%; padding: 8px; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px; margin-bottom: 3px; color: #666;">CPF:</label>
+                            <input type="text" id="filtroCpf" placeholder="CPF" style="width: 100%; padding: 8px; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="aplicarFiltros()" class="btn btn-primary" style="width: auto; padding: 8px 15px; font-size: 14px; margin: 0;">Aplicar</button>
+                            <button onclick="limparFiltros()" class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 14px; margin: 0;">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="adminContent">
+                    <div style="text-align: center; padding: 40px;">
+                        <p>Carregando membros...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área de Configuração -->
+            <div id="configSection" class="form-section" style="display: none;">
+                <h2>Configuração</h2>
+                <p style="color: #666; margin-bottom: 20px;">Gerencie igrejas e ocupações do sistema</p>
+                
+                <!-- Abas -->
+                <div class="tabs-container" style="margin-bottom: 20px;">
+                    <button class="tab-button active" data-tab="igrejas">Criar Igreja</button>
+                    <button class="tab-button" data-tab="areas-servicos">Criar Ocupação</button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div id="tabContent">
+                    <!-- Aba Igrejas -->
+                    <div id="tab-igrejas" class="tab-content active">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">Gerenciar Igrejas</h3>
+                        
+                        <!-- Formulário de Criar Igreja -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 15px;">Nova Igreja</h4>
+                            <form id="formIgreja">
+                                <div class="form-group">
+                                    <label for="igrejaNome">Nome da Igreja *:</label>
+                                    <input type="text" id="igrejaNome" required placeholder="Ex: Igreja Central">
+                                </div>
+                                <div class="form-group">
+                                    <label for="igrejaEstado">Estado:</label>
+                                    <input type="text" id="igrejaEstado" placeholder="Ex: São Paulo, Rio de Janeiro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="igrejaDescricao">Descrição:</label>
+                                    <textarea id="igrejaDescricao" rows="3" placeholder="Descrição da igreja (opcional)"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="igrejaQuantidade">Quantidade de Pessoas Vinculadas:</label>
+                                    <input type="number" id="igrejaQuantidade" min="0" value="0" placeholder="0">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Criar Igreja</button>
+                            </form>
+                        </div>
+
+                        <!-- Lista de Igrejas -->
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Igrejas Cadastradas</h4>
+                            <div id="listaIgrejas">
+                                <p style="text-align: center; color: #666; padding: 20px;">Carregando igrejas...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba Ocupações -->
+                    <div id="tab-areas-servicos" class="tab-content">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">Gerenciar Ocupações</h3>
+                        
+                        <!-- Formulário de Criar Ocupação -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 15px;">Nova Ocupação</h4>
+                            <form id="formAreaServico">
+                                <div class="form-group">
+                                    <label for="areaServicoNome">Qual nome da ocupação *:</label>
+                                    <input type="text" id="areaServicoNome" required placeholder="Ex: Educação, Saúde, etc.">
+                                </div>
+                                <div class="form-group">
+                                    <label for="areaServicoDescricao">Descrição:</label>
+                                    <textarea id="areaServicoDescricao" rows="3" placeholder="Descrição (opcional)"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Criar Ocupação</button>
+                            </form>
+                        </div>
+
+                        <!-- Lista de Ocupações -->
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Ocupações Cadastradas</h4>
+                            <div id="listaAreasServicos">
+                                <p style="text-align: center; color: #666; padding: 20px;">Carregando ocupações...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensagens -->
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
