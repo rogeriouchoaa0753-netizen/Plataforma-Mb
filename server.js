@@ -3059,12 +3059,38 @@ app.delete('/api/programacoes/:id/anexos/:anexoId', authenticateToken, (req, res
   );
 });
 
+// Rota informativa para /api
+app.get('/api', (req, res) => {
+  res.json({ 
+    message: 'API do Sistema ADMB',
+    version: '1.0.0',
+    status: 'online',
+    endpoints: {
+      health: '/api/health',
+      login: 'POST /api/login',
+      registro: 'POST /api/registro',
+      perfil: 'GET /api/perfil (requer autenticação)'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Rota de health check para Render e monitoramento
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
+  });
+});
+
+// Tratamento de rotas não encontradas (404)
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ 
+    erro: 'Rota não encontrada',
+    path: req.path,
+    method: req.method,
+    message: 'Verifique a documentação da API para rotas disponíveis'
   });
 });
 
