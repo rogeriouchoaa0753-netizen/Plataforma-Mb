@@ -346,7 +346,7 @@ async function carregarOcupacoes() {
         if (response.ok && data.ocupacoes) {
             const selectOcupacao = document.getElementById('registerOcupacao');
             if (selectOcupacao) {
-                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação...</option>';
+                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação (opcional)...</option>';
                 data.ocupacoes.forEach(ocupacao => {
                     const option = document.createElement('option');
                     option.value = ocupacao.id;
@@ -404,7 +404,7 @@ async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igr
         if (ocupResponse.ok && ocupData.ocupacoes) {
             const selectOcupacao = document.getElementById('perfilOcupacao');
             if (selectOcupacao) {
-                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação...</option>';
+                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação (opcional)...</option>';
                 ocupData.ocupacoes.forEach(ocupacao => {
                     const option = document.createElement('option');
                     option.value = ocupacao.id;
@@ -440,7 +440,6 @@ async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igr
         console.error('Erro ao carregar ocupações e igrejas:', error);
     }
 }
-
 // Registro
 registerFormElement.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -461,11 +460,6 @@ registerFormElement.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (!ocupacaoId) {
-        mostrarMensagem('Selecione uma ocupação', 'error');
-        return;
-    }
-
     if (senha.length < 6) {
         mostrarMensagem('A senha deve ter pelo menos 6 caracteres', 'error');
         return;
@@ -476,9 +470,12 @@ registerFormElement.addEventListener('submit', async (e) => {
             nome, 
             email, 
             senha, 
-            cpf, 
-            ocupacao_id: parseInt(ocupacaoId)
+            cpf
         };
+        
+        if (ocupacaoId) {
+            bodyData.ocupacao_id = parseInt(ocupacaoId);
+        }
         
         // Adicionar igreja_id se foi selecionada
         if (igrejaId) {
@@ -609,7 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
 // Formulário de perfil completo - usar delegação de eventos para garantir que funcione
 document.addEventListener('submit', async (e) => {
     // Verificar se é o formulário de perfil completo
@@ -928,7 +924,6 @@ async function mostrarSecaoAdmin() {
     
     await carregarDadosAdmin();
 }
-
 // Carregar dados administrativos - SEMPRE busca dados atualizados do SQL
 // NÃO armazena dados localmente - sempre busca do banco de dados
 async function carregarDadosAdmin() {
@@ -1250,7 +1245,6 @@ document.addEventListener('click', (e) => {
         });
     }
 });
-
 // Excluir usuário
 window.excluirUsuario = async function(usuarioId, nomeUsuario) {
     if (!confirm(`Tem certeza que deseja excluir permanentemente o cadastro de "${nomeUsuario}"?\n\nEsta ação não pode ser desfeita!`)) {
@@ -1370,7 +1364,6 @@ window.editarUsuario = async function(usuarioId) {
         mostrarMensagem('Erro ao conectar com o servidor', 'error');
     }
 }
-
 // Mostrar formulário de edição
 function mostrarFormularioEdicaoUsuario(usuario, ocupacoes, igrejas, filhos = []) {
     // Garantir que o sidebar esteja visível
@@ -1823,7 +1816,6 @@ function aplicarMascarasEdicao() {
         });
     }
 }
-
 // Salvar edição do usuário
 window.salvarEdicaoUsuario = async function(event, usuarioId) {
     event.preventDefault();
@@ -2306,7 +2298,6 @@ function exibirMembros(igrejaId, membros) {
     `;
     document.body.appendChild(modal);
 }
-
 // Remover membro (global para onclick)
 window.removerMembro = async function(igrejaId, membroId) {
     if (!confirm('Tem certeza que deseja remover este membro?')) return;
@@ -2445,7 +2436,6 @@ function exibirAreasServicos(areasServicos) {
         </div>
     `).join('');
 }
-
 // Editar ocupação (global para onclick)
 window.editarAreaServico = async function(id, nome, descricao, tipo) {
     const novoNome = prompt('Qual nome da ocupação:', nome);
@@ -2672,7 +2662,6 @@ function configurarNavegacaoAbasProgramacoes() {
         });
     });
 }
-
 // Configurar event listeners do calendário
 function configurarEventListenersCalendario() {
     const btnMesAnterior = document.getElementById('btnMesAnterior');
@@ -3064,7 +3053,6 @@ async function carregarMembrosParaVinculo() {
         }
     }
 }
-
 // Carregar calendário
 async function carregarCalendario() {
     const calendarioGrid = document.getElementById('calendarioGrid');
@@ -3509,7 +3497,6 @@ function determinarStatusProgramacao(dataEventoStr) {
         return 'futura';
     }
 }
-
 // Exibir programações
 function exibirProgramacoes() {
     const listaProgramacoes = document.getElementById('listaProgramacoes');
@@ -3653,7 +3640,6 @@ function exibirProgramacoes() {
         carregarBotoesConfirmacao(prog);
     });
 }
-
 // Carregar botões de confirmação de presença
 async function carregarBotoesConfirmacao(prog) {
     const container = document.getElementById(`botoesConfirmacao_${prog.id}`);
@@ -3855,7 +3841,6 @@ window.mostrarDetalhesProgramacao = async function(progId) {
             modal.remove();
         }
     };
-    
     modal.innerHTML = `
         <div style="background: white; border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; display: flex; flex-direction: column; overflow: hidden;">
             <!-- Cabeçalho Fixo -->
@@ -4278,7 +4263,6 @@ window.cancelarPresenca = function(programacaoId) {
         document.getElementById('justificativaAusencia')?.focus();
     }, 100);
 };
-
 // Enviar cancelamento de presença
 window.enviarCancelamentoPresenca = async function(programacaoId) {
     try {
@@ -4329,7 +4313,6 @@ window.enviarCancelamentoPresenca = async function(programacaoId) {
         mostrarMensagem('Erro ao registrar ausência', 'error');
     }
 };
-
 // Mostrar justificativa de ausência
 window.mostrarJustificativaAusencia = async function(programacaoId, usuarioId) {
     try {
@@ -4821,7 +4804,6 @@ window.abrirModalGerenciarConfirmacoes = async function(programacaoId) {
         mostrarMensagem('Erro ao carregar dados', 'error');
     }
 };
-
 // Selecionar usuário na pesquisa
 window.selecionarUsuarioGerenciar = function(usuarioId, nomeUsuario) {
     const usuarioAdicionar = document.getElementById('usuarioAdicionar');
@@ -4930,7 +4912,6 @@ window.mostrarConteudoCompletoAnexo = async function(programacaoId, anexoId) {
         mostrarMensagem('Erro ao carregar conteúdo', 'error');
     }
 };
-
 // Visualizador de fotos
 window.abrirVisualizadorFoto = async function(programacaoId, anexoId, tituloFoto) {
     try {
@@ -5301,7 +5282,6 @@ window.carregarImagemAutenticada = async function(programacaoId, anexoId, contai
         }
     }
 };
-
 // Carregar imagem no visualizador com autenticação
 window.carregarImagemVisualizador = async function(programacaoId, anexoId, containerId, titulo) {
     try {
@@ -5570,7 +5550,6 @@ function exibirAniversariantesPassadas() {
         `;
     }).join('');
 }
-
 // Verificar conflitos antes de salvar programação
 // Verifica APENAS por data, independente de igreja, hora, título, etc.
 async function verificarConflitoProgramacao(data_evento) {
@@ -5735,7 +5714,6 @@ async function salvarProgramacao() {
     // Se não há conflitos, salvar diretamente
     processarSalvamentoProgramacao(titulo, descricao, data_evento, data_fim_evento, hora_evento, igreja_id, local_evento, observacoes, ativarVinculo, ativarHorario, hora_vinculo);
 }
-
 // Processar salvamento da programação (separado para reutilizar após confirmação de conflito)
 async function processarSalvamentoProgramacao(titulo, descricao, data_evento, data_fim_evento, hora_evento, igreja_id, local_evento, observacoes, ativarVinculo, ativarHorario, hora_vinculo) {
     // Coletar membros vinculados se ativado
@@ -6220,7 +6198,6 @@ function exibirMinhasSolicitacoes(solicitacoes) {
         `;
     }).join('');
 }
-
 // Adicionar listener ao botão de logout se existir
 if (logoutBtn) {
     logoutBtn.addEventListener('click', fazerLogout);
@@ -6233,7 +6210,6 @@ if (logoutBtn) {
         }
     });
 }
-
 // Verificar token e carregar perfil
 async function verificarToken(token) {
     try {
@@ -6673,7 +6649,6 @@ function mostrarRelacionamentos(relacionamentos, estadoCivil) {
     document.getElementById('btnBuscarConjuge').onclick = () => buscarEAdicionarRelacionamento('conjuge');
     document.getElementById('btnBuscarFilho').onclick = () => buscarEAdicionarRelacionamento('filho');
 }
-
 // Buscar e adicionar relacionamento
 async function buscarEAdicionarRelacionamento(tipo) {
     const resultadoId = tipo === 'conjuge' ? 'resultadoBuscaConjuge' : 'resultadoBuscaFilho';
@@ -6860,7 +6835,6 @@ function formatarEstadoCivil(estado) {
     };
     return estados[estado] || estado;
 }
-
 // Mostrar mensagem
 function mostrarMensagem(texto, tipo) {
     const msgDiv = document.getElementById('message');
