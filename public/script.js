@@ -5,8 +5,8 @@ const API_URL = (() => {
     const protocol = window.location.protocol;
     
     // URL do backend em produção (Render.com, Railway, etc.)
-    // ⚠️ IMPORTANTE: Substitua pela URL do seu backend após fazer o deploy
-    const BACKEND_URL_PRODUCTION = 'https://software-admb-backend.onrender.com'; // ← ALTERE AQUI após deploy
+    // ✅ Backend deployado no Render: https://software-admb.onrender.com
+    const BACKEND_URL_PRODUCTION = 'https://software-admb.onrender.com';
     
     // Se estiver rodando localmente (localhost ou 127.0.0.1)
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
@@ -21,28 +21,8 @@ const API_URL = (() => {
     
     // Se estiver em GitHub Pages
     if (hostname === 'rogeriouchoaa0753-netizen.github.io' || hostname.includes('github.io')) {
-        // Verificar se a URL do backend foi configurada
-        const backendConfigured = BACKEND_URL_PRODUCTION && 
-                                  BACKEND_URL_PRODUCTION !== 'https://software-admb-backend.onrender.com' &&
-                                  !BACKEND_URL_PRODUCTION.includes('software-admb-backend.onrender.com');
-        
-        if (backendConfigured) {
-            return `${BACKEND_URL_PRODUCTION}/api`;
-        } else {
-            // Backend ainda não deployado - mostrar mensagem clara
-            console.error('⚠️⚠️⚠️ BACKEND NÃO CONFIGURADO ⚠️⚠️⚠️');
-            console.error('📋 Para fazer o sistema funcionar no GitHub Pages:');
-            console.error('1. Acesse: https://render.com');
-            console.error('2. Faça deploy do backend seguindo o guia DEPLOY.md');
-            console.error('3. Copie a URL do backend (ex: https://seu-app.onrender.com)');
-            console.error('4. Atualize BACKEND_URL_PRODUCTION no script.js (linha 9)');
-            console.error('5. Faça commit e push das alterações');
-            console.error('');
-            console.error('💡 Por enquanto, use localhost:3001 para testar localmente!');
-            
-            // Tentar usar a URL padrão mesmo assim (pode estar deployado com outro nome)
-            return `${BACKEND_URL_PRODUCTION}/api`;
-        }
+        // Backend configurado e deployado no Render
+        return `${BACKEND_URL_PRODUCTION}/api`;
     }
     
     // Para outros domínios de produção
