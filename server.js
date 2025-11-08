@@ -1695,7 +1695,7 @@ app.put('/api/admin/usuarios/:id', authenticateToken, (req, res) => {
 
 // Middleware para verificar se é admin
 const isAdmin = (req, res, next) => {
-  if (req.user.id !== 1) {
+  if (req.user.id !== 2) {
     return res.status(403).json({ erro: 'Acesso negado. Apenas administradores podem acessar esta área.' });
   }
   next();
