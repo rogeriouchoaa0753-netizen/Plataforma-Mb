@@ -11,7 +11,19 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_secret_key_aqui_mude_em_producao';
 
 // Middleware
-app.use(cors());
+// Configurar CORS para aceitar requisições do GitHub Pages e localhost
+app.use(cors({
+    origin: [
+        'https://rogeriouchoaa0753-netizen.github.io',
+        'http://localhost:3001',
+        'http://localhost:3000',
+        'http://127.0.0.1:3001'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '50mb' })); // Aumentar limite para suportar textos grandes e arquivos
 app.use(express.static('public'));
 
@@ -3047,9 +3059,19 @@ app.delete('/api/programacoes/:id/anexos/:anexoId', authenticateToken, (req, res
   );
 });
 
+// Rota de health check para Render e monitoramento
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Acesse: http://localhost:${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
 });
 
 // Fechar banco de dados ao encerrar

@@ -1,4 +1,62 @@
-const API_URL = '/api';
+// Detectar automaticamente a URL da API baseado no ambiente
+const API_URL = (() => {
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const protocol = window.location.protocol;
+    
+    // URL do backend em produção (Render.com, Railway, etc.)
+    // ⚠️ IMPORTANTE: Substitua pela URL do seu backend após fazer o deploy
+    const BACKEND_URL_PRODUCTION = 'https://software-admb-backend.onrender.com'; // ← ALTERE AQUI após deploy
+    
+    // Se estiver rodando localmente (localhost ou 127.0.0.1)
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
+        // Se estiver na porta 3001, usar a mesma origem (servidor Express)
+        if (port === '3001' || (port === '' && window.location.href.includes('localhost:3001'))) {
+            return '/api';
+        }
+        // Se estiver abrindo arquivo diretamente (file://) ou em outra porta
+        // Assumir que o backend está em localhost:3001
+        return 'http://localhost:3001/api';
+    }
+    
+    // Se estiver em GitHub Pages
+    if (hostname === 'rogeriouchoaa0753-netizen.github.io' || hostname.includes('github.io')) {
+        // Verificar se a URL do backend foi configurada
+        const backendConfigured = BACKEND_URL_PRODUCTION && 
+                                  BACKEND_URL_PRODUCTION !== 'https://software-admb-backend.onrender.com' &&
+                                  !BACKEND_URL_PRODUCTION.includes('software-admb-backend.onrender.com');
+        
+        if (backendConfigured) {
+            return `${BACKEND_URL_PRODUCTION}/api`;
+        } else {
+            // Backend ainda não deployado - mostrar mensagem clara
+            console.error('⚠️⚠️⚠️ BACKEND NÃO CONFIGURADO ⚠️⚠️⚠️');
+            console.error('📋 Para fazer o sistema funcionar no GitHub Pages:');
+            console.error('1. Acesse: https://render.com');
+            console.error('2. Faça deploy do backend seguindo o guia DEPLOY.md');
+            console.error('3. Copie a URL do backend (ex: https://seu-app.onrender.com)');
+            console.error('4. Atualize BACKEND_URL_PRODUCTION no script.js (linha 9)');
+            console.error('5. Faça commit e push das alterações');
+            console.error('');
+            console.error('💡 Por enquanto, use localhost:3001 para testar localmente!');
+            
+            // Tentar usar a URL padrão mesmo assim (pode estar deployado com outro nome)
+            return `${BACKEND_URL_PRODUCTION}/api`;
+        }
+    }
+    
+    // Para outros domínios de produção
+    if (BACKEND_URL_PRODUCTION && BACKEND_URL_PRODUCTION !== 'https://software-admb-backend.onrender.com') {
+        return `${BACKEND_URL_PRODUCTION}/api`;
+    }
+    
+    // Fallback
+    console.warn('⚠️ Ambiente não reconhecido. Usando fallback.');
+    return '/api';
+})();
+
+// Log da URL da API para debug
+console.log('🔗 API URL configurada:', API_URL);
 
 // Elementos do DOM
 const loginForm = document.getElementById('loginForm');
@@ -205,6 +263,8 @@ loginFormElement.addEventListener('submit', async (e) => {
     }
 
     try {
+        console.log('🔐 Tentando fazer login com:', { email, API_URL: `${API_URL}/login` });
+        
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: {
@@ -213,7 +273,19 @@ loginFormElement.addEventListener('submit', async (e) => {
             body: JSON.stringify({ email, senha })
         });
 
-        const data = await response.json();
+        console.log('📡 Resposta do servidor:', { status: response.status, statusText: response.statusText });
+
+        // Verificar se a resposta é JSON válida
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            console.error('❌ Erro ao parsear JSON:', jsonError);
+            const text = await response.text();
+            console.error('📄 Resposta do servidor (texto):', text);
+            mostrarMensagem('Erro ao processar resposta do servidor. Verifique se o servidor está rodando corretamente.', 'error');
+            return;
+        }
 
         if (response.ok) {
             localStorage.setItem('token', data.token);
@@ -246,8 +318,42 @@ loginFormElement.addEventListener('submit', async (e) => {
             mostrarMensagem(data.erro || 'Erro ao fazer login', 'error');
         }
     } catch (error) {
-        console.error('Erro no login:', error);
-        mostrarMensagem('Erro ao conectar com o servidor. Verifique se o servidor está rodando.', 'error');
+        console.error('❌ Erro no login:', error);
+        console.error('📍 URL tentada:', `${API_URL}/login`);
+        console.error('🌐 URL atual:', window.location.href);
+        
+        // Mensagem de erro mais detalhada
+        let mensagemErro = 'Erro ao conectar com o servidor.\n\n';
+        
+        if (error.message && error.message.includes('Failed to fetch')) {
+            // Verificar se está no GitHub Pages
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            
+            if (isGitHubPages) {
+                mensagemErro += '❌ Backend não encontrado!\n\n';
+                mensagemErro += '📋 O backend ainda não foi deployado.\n\n';
+                mensagemErro += 'Para fazer funcionar:\n';
+                mensagemErro += '1. 📖 Leia o arquivo DEPLOY.md\n';
+                mensagemErro += '2. 🌐 Acesse: https://render.com\n';
+                mensagemErro += '3. 🚀 Faça deploy do backend\n';
+                mensagemErro += '4. 🔗 Atualize a URL no script.js\n\n';
+                mensagemErro += `💡 URL tentada: ${API_URL}\n`;
+                mensagemErro += '💡 Para testar localmente, use: http://localhost:3001';
+            } else {
+                mensagemErro += '❌ Não foi possível conectar ao servidor.\n\n';
+                mensagemErro += 'Verifique:\n';
+                mensagemErro += '1. O servidor está rodando? (Execute: npm start)\n';
+                mensagemErro += `2. Acesse via: http://localhost:3001\n`;
+                mensagemErro += `3. URL da API: ${API_URL}\n`;
+                mensagemErro += `4. URL atual: ${window.location.href}\n`;
+            }
+        } else if (error.message && error.message.includes('CORS')) {
+            mensagemErro += '❌ Erro de CORS. Verifique se o servidor permite requisições da origem atual.';
+        } else {
+            mensagemErro += `Erro: ${error.message || 'Erro desconhecido'}`;
+        }
+        
+        mostrarMensagem(mensagemErro, 'error');
     }
 });
 
