@@ -111,6 +111,7 @@ function garantirSidebarVisivel() {
         if (container && !container.classList.contains('with-sidebar')) {
             container.classList.add('with-sidebar');
         }
+        document.body.classList.add('body-with-sidebar');
         // Ajustar padding do body para o menu inferior (mobile style)
         // Espaço suficiente para a barra de navegação
         if (window.innerWidth >= 768) {
@@ -121,6 +122,7 @@ function garantirSidebarVisivel() {
     } else if (sidebarMenu) {
         sidebarMenu.style.display = 'none';
         document.body.style.paddingBottom = '20px';
+        document.body.classList.remove('body-with-sidebar');
     }
 }
 
@@ -2627,6 +2629,7 @@ function fazerLogout() {
     if (pageTitle) pageTitle.textContent = 'Sistema de Login';
 
     restaurarCredenciaisSalvas();
+    document.body.classList.remove('body-with-sidebar');
 }
 
 // ========== FUNÇÕES DO CALENDÁRIO E PROGRAMAÇÕES ==========

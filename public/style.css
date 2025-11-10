@@ -80,6 +80,10 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    overflow-y: hidden;
+body.body-with-sidebar {
+    overflow-y: auto;
+}
     position: relative;
     margin: 0;
     display: flex;
@@ -206,8 +210,8 @@ body > * {
 .container:not(.with-sidebar) .form-container {
     position: fixed;
     left: 50%;
-    bottom: 5vh;
-    transform: translateX(-50%);
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: calc(var(--app-width) + 60px);
     max-width: calc(var(--app-width) + 60px);
     margin: 0;
@@ -268,7 +272,7 @@ body > * {
     .container:not(.with-sidebar) .form-container {
         width: calc(100vw - 24px);
         max-width: 460px;
-        bottom: 3vh;
+        top: 56%;
         min-height: 250px;
         padding: calc(var(--spacing-md) - 6px);
         padding-top: calc(var(--spacing-xs) + 2px);
