@@ -61,6 +61,8 @@ let currentUserId = null;
 
 function abrirModalForm(formElement) {
     if (!formElement) return;
+    formElement.style.display = 'block';
+    formElement.style.visibility = 'visible';
     formElement.classList.add('modal-active');
     document.body.classList.add('modal-open');
     if (modalOverlay) {
@@ -73,7 +75,11 @@ function fecharModalForms() {
     if (modalOverlay) {
         modalOverlay.classList.remove('visible');
     }
-    document.querySelectorAll('.modal-active').forEach(el => el.classList.remove('modal-active'));
+    document.querySelectorAll('.modal-form').forEach(el => {
+        el.classList.remove('modal-active');
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+    });
 }
 
 if (modalOverlay) {
