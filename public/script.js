@@ -56,44 +56,8 @@ const rememberLoginCheckbox = document.getElementById('rememberLogin');
 const logoutBtn = document.getElementById('logoutBtn');
 const messageDiv = document.getElementById('message');
 const pageTitle = document.getElementById('pageTitle');
-const modalOverlay = document.getElementById('modalOverlay');
 let currentUserId = null;
 
-function abrirModalForm(formElement) {
-    if (!formElement) return;
-    formElement.style.display = 'block';
-    formElement.style.visibility = 'visible';
-    formElement.classList.add('modal-active');
-    document.body.classList.add('modal-open');
-    if (modalOverlay) {
-        modalOverlay.classList.add('visible');
-    }
-}
-
-function fecharModalForms() {
-    document.body.classList.remove('modal-open');
-    if (modalOverlay) {
-        modalOverlay.classList.remove('visible');
-    }
-    document.querySelectorAll('.modal-form').forEach(el => {
-        el.classList.remove('modal-active');
-        el.style.display = 'none';
-        el.style.visibility = 'hidden';
-    });
-}
-
-if (modalOverlay) {
-    modalOverlay.addEventListener('click', () => {
-        // Ao clicar no fundo, retorna ao login caso o usuário esteja no cadastro
-        if (registerForm && registerForm.classList.contains('active')) {
-            registerForm.classList.remove('active');
-            if (loginForm) {
-                loginForm.classList.add('active');
-            }
-        }
-        fecharModalForms();
-    });
-}
 
 // Verificar se já está logado
 window.addEventListener('DOMContentLoaded', () => {
@@ -360,7 +324,7 @@ showLoginLink.addEventListener('click', (e) => {
     e.preventDefault();
     registerForm.classList.remove('active');
     loginForm.classList.add('active');
-    fecharModalForms();
+    // fecharModalForms();
     limparMensagem();
 });
 
@@ -641,7 +605,7 @@ registerFormElement.addEventListener('submit', async (e) => {
             currentUserId = data.usuario.id;
             salvarSecaoAtual('editar'); // Salvar seção de edição após registro (para completar perfil)
             mostrarMensagem(`Cadastro realizado com sucesso! ID: ${data.usuario.id}`, 'success');
-            fecharModalForms();
+            // fecharModalForms();
             // Esconder formulário de registro e ir direto ao perfil
             // Esconder formulários de login/registro IMEDIATAMENTE e FORÇADAMENTE
             if (loginForm) {
@@ -684,7 +648,6 @@ if (cancelarPerfilCompleto) {
         if (confirm('Deseja cancelar? As alterações não serão salvas.')) {
             perfilCompletoForm.style.display = 'none';
             profileSection.style.display = 'block';
-            fecharModalForms();
             carregarPerfilCompleto();
         }
     });
@@ -903,7 +866,7 @@ document.addEventListener('submit', async (e) => {
                     // Esconder formulário de edição
                     if (perfilCompletoForm) {
                         perfilCompletoForm.style.display = 'none';
-                        fecharModalForms();
+                        // fecharModalForms();
                     }
                     
                     // Mostrar seção de perfil
@@ -997,7 +960,7 @@ function mostrarSecaoPerfil() {
     if (inicioSection) inicioSection.style.display = 'none';
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
+        // fecharModalForms();
     }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
@@ -1049,7 +1012,7 @@ async function mostrarSecaoAdmin() {
     if (profileSection) profileSection.style.display = 'none';
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
+        // fecharModalForms();
     }
     if (configSection) configSection.style.display = 'none';
     
@@ -2169,7 +2132,7 @@ async function mostrarSecaoConfig() {
     if (profileSection) profileSection.style.display = 'none';
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
+        // fecharModalForms();
     }
     if (adminSection) adminSection.style.display = 'none';
     
@@ -2669,7 +2632,7 @@ function fazerLogout() {
     // Esconder todas as outras seções
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
+        // fecharModalForms();
     }
     if (profileSection) profileSection.style.display = 'none';
     if (adminSection) adminSection.style.display = 'none';
@@ -2711,7 +2674,7 @@ async function mostrarSecaoInicio() {
     if (profileSection) profileSection.style.display = 'none';
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
+        // fecharModalForms();
     }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
