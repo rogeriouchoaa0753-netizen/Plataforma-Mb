@@ -6,7 +6,7 @@ const API_URL = (() => {
     
     // URL do backend em produção (Render.com, Railway, etc.)
     // ✅ Backend deployado no Render: https://software-admb.onrender.com
-    const BACKEND_URL_PRODUCTION = 'https://software-admb.onrender.com';
+    const BACKEND_URL_PRODUCTION = 'https://plataforma-mb.onrender.com';
     
     // Se estiver rodando localmente (localhost ou 127.0.0.1)
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {

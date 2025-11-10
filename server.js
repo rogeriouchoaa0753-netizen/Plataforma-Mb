@@ -15,6 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'seu_secret_key_aqui_mude_em_produc
 app.use(cors({
     origin: [
         'https://rogeriouchoaa0753-netizen.github.io',
+        'https://plataforma-mb.onrender.com',
         'http://localhost:3001',
         'http://localhost:3000',
         'http://127.0.0.1:3001'
@@ -3092,6 +3093,14 @@ app.use('/api/*', (req, res) => {
     method: req.method,
     message: 'Verifique a documentação da API para rotas disponíveis'
   });
+});
+
+// Fallback para servir o frontend em produção (SPA)
+app.get('*', (req, res) => {
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(404).json({ erro: 'Endpoint não encontrado' });
+  }
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
