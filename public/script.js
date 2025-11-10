@@ -56,7 +56,38 @@ const rememberLoginCheckbox = document.getElementById('rememberLogin');
 const logoutBtn = document.getElementById('logoutBtn');
 const messageDiv = document.getElementById('message');
 const pageTitle = document.getElementById('pageTitle');
+const modalOverlay = document.getElementById('modalOverlay');
 let currentUserId = null;
+
+function abrirModalForm(formElement) {
+    if (!formElement) return;
+    formElement.classList.add('modal-active');
+    document.body.classList.add('modal-open');
+    if (modalOverlay) {
+        modalOverlay.classList.add('visible');
+    }
+}
+
+function fecharModalForms() {
+    document.body.classList.remove('modal-open');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('visible');
+    }
+    document.querySelectorAll('.modal-active').forEach(el => el.classList.remove('modal-active'));
+}
+
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', () => {
+        // Ao clicar no fundo, retorna ao login caso o usuário esteja no cadastro
+        if (registerForm && registerForm.classList.contains('active')) {
+            registerForm.classList.remove('active');
+            if (loginForm) {
+                loginForm.classList.add('active');
+            }
+        }
+        fecharModalForms();
+    });
+}
 
 // Verificar se já está logado
 window.addEventListener('DOMContentLoaded', () => {
@@ -315,6 +346,7 @@ showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.classList.remove('active');
     registerForm.classList.add('active');
+    abrirModalForm(registerForm);
     limparMensagem();
 });
 
@@ -322,6 +354,7 @@ showLoginLink.addEventListener('click', (e) => {
     e.preventDefault();
     registerForm.classList.remove('active');
     loginForm.classList.add('active');
+    fecharModalForms();
     limparMensagem();
 });
 
@@ -602,6 +635,7 @@ registerFormElement.addEventListener('submit', async (e) => {
             currentUserId = data.usuario.id;
             salvarSecaoAtual('editar'); // Salvar seção de edição após registro (para completar perfil)
             mostrarMensagem(`Cadastro realizado com sucesso! ID: ${data.usuario.id}`, 'success');
+            fecharModalForms();
             // Esconder formulário de registro e ir direto ao perfil
             // Esconder formulários de login/registro IMEDIATAMENTE e FORÇADAMENTE
             if (loginForm) {
@@ -644,6 +678,7 @@ if (cancelarPerfilCompleto) {
         if (confirm('Deseja cancelar? As alterações não serão salvas.')) {
             perfilCompletoForm.style.display = 'none';
             profileSection.style.display = 'block';
+            fecharModalForms();
             carregarPerfilCompleto();
         }
     });
@@ -862,6 +897,7 @@ document.addEventListener('submit', async (e) => {
                     // Esconder formulário de edição
                     if (perfilCompletoForm) {
                         perfilCompletoForm.style.display = 'none';
+                        fecharModalForms();
                     }
                     
                     // Mostrar seção de perfil
@@ -953,7 +989,10 @@ function mostrarSecaoPerfil() {
     
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
     
@@ -1002,7 +1041,10 @@ async function mostrarSecaoAdmin() {
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
     if (profileSection) profileSection.style.display = 'none';
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (configSection) configSection.style.display = 'none';
     
     // Mostrar menu e seção admin
@@ -2119,7 +2161,10 @@ async function mostrarSecaoConfig() {
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
     if (profileSection) profileSection.style.display = 'none';
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (adminSection) adminSection.style.display = 'none';
     
     // Mostrar menu e seção de configuração
@@ -2616,7 +2661,10 @@ function fazerLogout() {
     }
     
     // Esconder todas as outras seções
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (profileSection) profileSection.style.display = 'none';
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
@@ -2655,7 +2703,10 @@ async function mostrarSecaoInicio() {
     
     // Esconder TODAS as outras seções primeiro
     if (profileSection) profileSection.style.display = 'none';
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
     
@@ -6385,6 +6436,7 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     configurarItensMenu(usuario.id);
     
     perfilCompletoForm.style.display = 'block';
+    abrirModalForm(perfilCompletoForm);
     pageTitle.textContent = 'Complete seu Perfil';
     
     // Atualizar menu ativo
@@ -6503,7 +6555,10 @@ function mostrarPerfilCompleto(data) {
     
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
-    if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+        fecharModalForms();
+    }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
     
