@@ -8,50 +8,79 @@
 </head>
 <body>
     <div class="container">
-        <!-- Menu Lateral (apenas quando logado) -->
-        <div id="sidebarMenu" class="sidebar" style="display: none;">
-            <div class="sidebar-header">
-                <h2>Menu</h2>
+        <!-- Menu Inferior Fixo (apenas quando logado) -->
+        <nav id="sidebarMenu" class="bottom-nav" style="display: none;">
+            <a href="#" class="nav-item" data-section="inicio">
+                <span class="nav-icon">Home</span>
+                <span class="nav-label">Início</span>
+            </a>
+            <a href="#" class="nav-item active" data-section="perfil">
+                <span class="nav-icon">Perfil</span>
+                <span class="nav-label">Perfil</span>
+            </a>
+            <a href="#" class="nav-item" data-section="admin" id="menuAdmin" style="display: none;">
+                <span class="nav-icon">Admin</span>
+                <span class="nav-label">Admin</span>
+            </a>
+            <a href="#" class="nav-item" data-section="config" id="menuConfig" style="display: none;">
+                <span class="nav-icon">Config</span>
+                <span class="nav-label">Config</span>
+            </a>
+            <a href="#" class="nav-item" data-section="logout" id="menuLogout">
+                <span class="nav-icon">Sair</span>
+                <span class="nav-label">Sair</span>
+            </a>
+        </nav>
+
+        <div class="login-hero">
+            <img src="images/LOGO%20YOUTUBE%20MISSÃO%20BRASIL.png" alt="Logo Missão Brasil" class="login-hero-logo">
+            <div class="login-hero-text">
+                <span class="login-hero-title">ADMB</span>
+                <span class="login-hero-subtitle">Restaurando vidas &amp; edificando famílias</span>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="menu-item" data-section="inicio">
-                    <span>🏠</span> Início
-                </a>
-                <a href="#" class="menu-item active" data-section="perfil">
-                    <span>👤</span> Meu Perfil
-                </a>
-                <a href="#" class="menu-item" data-section="admin" id="menuAdmin" style="display: none;">
-                    <span>⚙️</span> Administração
-                </a>
-                <a href="#" class="menu-item" data-section="config" id="menuConfig" style="display: none;">
-                    <span>🔧</span> Configuração
-                </a>
-                <a href="#" class="menu-item" data-section="logout" id="menuLogout">
-                    <span>🚪</span> Sair
-                </a>
-            </nav>
+        </div>
+
+        <div class="login-social">
+            <a href="https://www.instagram.com/ad.missaobrasil?igsh=MXF2YnNwNmQyMXdhbg==" target="_blank" rel="noopener" class="social-icon instagram" aria-label="Instagram ADMB">
+                <img src="images/instagram.png" alt="Instagram">
+            </a>
+            <a href="https://www.youtube.com/@assmiss%C3%A3obrasil" target="_blank" rel="noopener" class="social-icon youtube" aria-label="YouTube ADMB">
+                <img src="images/youtube.png" alt="YouTube">
+            </a>
         </div>
 
         <div class="form-container">
-            <h1 id="pageTitle">Sistema de Login</h1>
+            <h1 id="pageTitle" style="display: none;">Sistema de Login</h1>
             
             <!-- Formulário de Login -->
             <div id="loginForm" class="form-section active">
-                <h2>Login</h2>
+                <p class="login-subtitle">Faça seu login!</p>
                 <form id="loginFormElement">
-                    <div class="form-group">
-                        <label for="loginEmail">Email:</label>
-                        <input type="email" id="loginEmail" required>
+                    <div class="form-group input-with-icon">
+                        <div class="input-wrapper">
+                            <span class="input-icon">@</span>
+                            <input type="email" id="loginEmail" placeholder="Email address" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="loginSenha">Senha:</label>
-                        <input type="password" id="loginSenha" required>
+                    <div class="form-group input-with-icon">
+                        <div class="input-wrapper">
+                            <span class="input-icon">🗝</span>
+                            <input type="password" id="loginSenha" placeholder="Password" required>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <div class="form-meta">
+                        <label class="remember-option">
+                            <input type="checkbox" id="rememberLogin">
+                            <span>Lembrar login</span>
+                        </label>
+                        <a href="#" id="forgotPassword" class="link-text">Esqueci a senha</a>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-signin">Entrar</button>
+                        <button type="button" class="btn btn-create-account" id="showRegister">Criar Conta</button>
+                    </div>
                 </form>
-                <p class="switch-form">
-                    Não tem uma conta? <a href="#" id="showRegister">Cadastre-se</a>
-                </p>
+                <div class="login-links"></div>
             </div>
 
             <!-- Formulário de Registro -->
@@ -199,7 +228,7 @@
                                     <input type="text" id="buscarConjugeCpf" placeholder="CPF do cônjuge" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
                                     <input type="number" id="buscarConjugeId" placeholder="ID do cadastro" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; display: none;">
                                     <button type="button" id="btnBuscarConjuge" class="btn btn-primary" style="width: auto; padding: 8px 15px;">Buscar</button>
-                                    <button type="button" id="cancelarBuscarConjuge" class="btn btn-secondary" style="width: 40px; padding: 8px;">✕</button>
+                                    <button type="button" id="cancelarBuscarConjuge" class="btn btn-secondary" style="width: 60px; padding: 8px;">Fechar</button>
                                 </div>
                                 <div id="resultadoBuscaConjuge" style="margin-top: 10px;"></div>
                             </div>
@@ -215,7 +244,7 @@
                                     <input type="text" id="buscarFilhoCpf" placeholder="CPF do filho" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
                                     <input type="number" id="buscarFilhoId" placeholder="ID do cadastro" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; display: none;">
                                     <button type="button" id="btnBuscarFilho" class="btn btn-primary" style="width: auto; padding: 8px 15px;">Buscar</button>
-                                    <button type="button" id="cancelarBuscarFilho" class="btn btn-secondary" style="width: 40px; padding: 8px;">✕</button>
+                                    <button type="button" id="cancelarBuscarFilho" class="btn btn-secondary" style="width: 60px; padding: 8px;">Fechar</button>
                                 </div>
                                 <div id="resultadoBuscaFilho" style="margin-top: 10px;"></div>
                             </div>
@@ -225,7 +254,7 @@
                     
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar Perfil</button>
-                        <button type="button" id="cancelarPerfilCompleto" class="btn btn-secondary" style="width: 50px; padding: 12px;">✕</button>
+                        <button type="button" id="cancelarPerfilCompleto" class="btn btn-secondary" style="width: 80px; padding: 12px;">Fechar</button>
                     </div>
                 </form>
             </div>
@@ -253,14 +282,14 @@
                 
                 <!-- Aniversariantes do Mês (oculto - movido para aba Programações Passadas) -->
                 <div id="aniversariantesContainer" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
-                    <h3 style="color: #856404; margin-bottom: 10px;">🎂 Aniversariantes do Mês</h3>
+                    <h3 style="color: #856404; margin-bottom: 10px;"> Aniversariantes do Mês</h3>
                     <div id="listaAniversariantes"></div>
                 </div>
                 
                 <!-- Filtros de Programações -->
                 <div id="filtrosProgramacoes" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e0e0e0;">
                     <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 16px; display: flex; align-items: center;">
-                        <span style="font-size: 20px; margin-right: 8px;">🔍</span> Filtrar Programações
+                        <span style="font-size: 20px; margin-right: 8px;"></span> Filtrar Programações
                     </h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
                         <div>
@@ -274,7 +303,7 @@
                             <div style="position: relative;">
                                 <input type="text" id="filtroCodigoProgramacao" placeholder="Ex: PRG-2025-001" style="width: 100%; padding: 8px 35px 8px 8px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 13px;">
                                 <button id="btnPesquisarCodigo" type="button" class="btn btn-primary" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 5px 10px; font-size: 14px; border-radius: 4px; display: none; cursor: pointer; background: #667eea; color: white; border: none;">
-                                    🔍
+                                    Buscar
                                 </button>
                             </div>
                         </div>
@@ -283,16 +312,16 @@
                             <div style="position: relative;">
                                 <input type="text" id="filtroTituloProgramacao" placeholder="Buscar por título..." style="width: 100%; padding: 8px 35px 8px 8px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 13px;">
                                 <button id="btnPesquisarTitulo" type="button" class="btn btn-primary" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 5px 10px; font-size: 14px; border-radius: 4px; display: none; cursor: pointer; background: #667eea; color: white; border: none;">
-                                    🔍
+                                    Buscar
                                 </button>
                             </div>
                         </div>
                         <div style="display: flex; align-items: flex-end; gap: 8px;">
                             <button id="btnPesquisarFiltros" type="button" class="btn btn-primary" style="flex: 1; padding: 8px; font-size: 13px; display: none;">
-                                🔍 Pesquisar
+                                 Pesquisar
                             </button>
                             <button id="btnLimparFiltrosProgramacao" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 13px;">
-                                🔄 Limpar
+                                 Limpar
                             </button>
                         </div>
                     </div>
@@ -300,15 +329,15 @@
                 
                 <!-- Botão para criar programação/solicitação -->
                 <div style="margin-bottom: 20px;">
-                    <button id="btnCriarProgramacao" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
-                        ➕ Criar Programação
+            <button id="btnCriarProgramacao" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
+                        Criar Programação
                     </button>
                 </div>
                 
                 <!-- Modal para criar programação (admin) ou solicitação (usuário comum) -->
                 <div id="modalCriarProgramacao" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
                     <div style="background: white; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;">
-                        <button id="fecharModalProgramacao" style="position: absolute; top: 15px; right: 15px; background: #f44336; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10001;">✕</button>
+                        <button id="fecharModalProgramacao" style="position: absolute; top: 15px; right: 15px; background: #f44336; color: white; border: none; border-radius: 18px; padding: 8px 14px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10001;">Fechar</button>
                         
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 12px 12px 0 0; color: white;">
                             <h2 id="tituloFormProgramacao" style="margin: 0; font-size: 18px; font-weight: bold;"></h2>
@@ -421,6 +450,7 @@
                     <div class="tabs-container" style="margin-bottom: 20px;">
                         <button class="tab-button active" data-tab="programacoes" id="tabProgramacoes">Programações Aprovadas</button>
                         <button class="tab-button" data-tab="programacoesPassadas" id="tabProgramacoesPassadas">Programações Passadas</button>
+                        <button class="tab-button" data-tab="aniversariantes" id="tabAniversariantes">Aniversariantes do Mês</button>
                         <button class="tab-button" data-tab="solicitacoes" id="tabSolicitacoes" style="display: none;">Solicitações Pendentes</button>
                         <button class="tab-button" data-tab="minhasSolicitacoes" id="tabMinhasSolicitacoes" style="display: none;">Minhas Solicitações</button>
                     </div>
@@ -432,7 +462,7 @@
                             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #667eea;">
                                     <h4 style="margin: 0; color: #667eea; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
-                                        <span style="font-size: 22px; margin-right: 10px;">📅</span> Programações Aprovadas do Mês
+                                        <span style="font-size: 22px; margin-right: 10px;"></span> Programações Aprovadas do Mês
                                     </h4>
                                     <span id="contadorProgramacoes" style="background: #667eea; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
                                 </div>
@@ -445,7 +475,7 @@
                             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #ffc107;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #ffc107;">
                                     <h4 style="margin: 0; color: #ff9800; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
-                                        <span style="font-size: 22px; margin-right: 10px;">⏳</span> Solicitações Pendentes
+                                        Solicitações Pendentes
                                     </h4>
                                     <span id="contadorSolicitacoes" style="background: #ffc107; color: #856404; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
                                 </div>
@@ -458,19 +488,24 @@
                             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #757575;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #757575;">
                                     <h4 style="margin: 0; color: #757575; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
-                                        <span style="font-size: 22px; margin-right: 10px;">📜</span> Programações Passadas
+                                        <span style="font-size: 22px; margin-right: 10px;"></span> Programações Passadas
                                     </h4>
                                     <span id="contadorProgramacoesPassadas" style="background: #757575; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
                                 </div>
                                 <div id="listaProgramacoesPassadas"></div>
                             </div>
-                            
-                            <!-- Aniversariantes do Mês -->
-                            <div style="background: #fff3cd; padding: 20px; border-radius: 12px; margin-top: 25px; border-left: 4px solid #ffc107; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                <h3 style="color: #856404; margin-bottom: 15px; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
-                                    <span style="font-size: 24px; margin-right: 10px;">🎂</span> Aniversariantes do Mês
-                                </h3>
-                                <div id="listaAniversariantesPassadas"></div>
+                        </div>
+                        
+                        <!-- Aba Aniversariantes do Mês -->
+                        <div id="tabContentAniversariantes" class="tab-content">
+                            <div style="background: #fff3cd; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #ffc107;">
+                                    <h4 style="margin: 0; color: #856404; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
+                                        <span style="font-size: 22px; margin-right: 10px;"></span> Aniversariantes do Mês
+                                    </h4>
+                                    <span id="contadorAniversariantes" style="background: #ffc107; color: #856404; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
+                                </div>
+                                <div id="listaAniversariantes"></div>
                             </div>
                         </div>
                         
@@ -479,7 +514,7 @@
                             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #667eea;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #667eea;">
                                     <h4 style="margin: 0; color: #667eea; font-size: 18px; font-weight: bold; display: flex; align-items: center;">
-                                        <span style="font-size: 22px; margin-right: 10px;">📋</span> Minhas Solicitações
+                                        <span style="font-size: 22px; margin-right: 10px;"></span> Minhas Solicitações
                                     </h4>
                                     <span id="contadorMinhasSolicitacoes" style="background: #667eea; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;"></span>
                                 </div>
@@ -494,7 +529,7 @@
             <div id="profileSection" class="form-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="margin: 0;">Meu Perfil</h2>
-                    <button id="btnEditarPerfil" class="btn btn-primary" style="width: auto; padding: 10px 20px;">✏️ Editar</button>
+                    <button id="btnEditarPerfil" class="btn btn-primary" style="width: auto; padding: 10px 20px;">Editar</button>
                 </div>
                 <div id="userInfo"></div>
             </div>
