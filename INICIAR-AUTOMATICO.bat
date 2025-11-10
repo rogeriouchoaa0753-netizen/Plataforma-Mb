@@ -12,3 +12,7 @@ cd /d "%~dp0"
 node auto-start.js
 
 
+
+
+
+

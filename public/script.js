@@ -52,6 +52,7 @@ const registerFormElement = document.getElementById('registerFormElement');
 const perfilCompletoFormElement = document.getElementById('perfilCompletoFormElement');
 const showRegisterLink = document.getElementById('showRegister');
 const showLoginLink = document.getElementById('showLogin');
+const rememberLoginCheckbox = document.getElementById('rememberLogin');
 const logoutBtn = document.getElementById('logoutBtn');
 const messageDiv = document.getElementById('message');
 const pageTitle = document.getElementById('pageTitle');
@@ -59,6 +60,9 @@ let currentUserId = null;
 
 // Verificar se já está logado
 window.addEventListener('DOMContentLoaded', () => {
+    restaurarCredenciaisSalvas();
+    configurarPersistenciaRememberMe();
+
     const token = localStorage.getItem('token');
     if (token) {
         verificarToken(token);
@@ -98,17 +102,107 @@ function esconderFormulariosLogin() {
     }
 }
 
-// Garantir que o sidebar esteja sempre visível quando o usuário estiver logado
+// Garantir que o menu esteja sempre visível quando o usuário estiver logado
 function garantirSidebarVisivel() {
     const token = localStorage.getItem('token');
     if (token && sidebarMenu) {
-        sidebarMenu.style.display = 'block';
+        sidebarMenu.style.display = 'flex';
         const container = document.querySelector('.container');
         if (container && !container.classList.contains('with-sidebar')) {
             container.classList.add('with-sidebar');
         }
+        // Ajustar padding do body para o menu inferior (mobile style)
+        // Espaço suficiente para a barra de navegação
+        if (window.innerWidth >= 768) {
+            document.body.style.paddingBottom = '90px';
+        } else {
+            document.body.style.paddingBottom = '85px';
+        }
+    } else if (sidebarMenu) {
+        sidebarMenu.style.display = 'none';
+        document.body.style.paddingBottom = '20px';
     }
 }
+
+function restaurarCredenciaisSalvas() {
+    if (!rememberLoginCheckbox) return;
+    const stored = localStorage.getItem('rememberedCredentials');
+    if (!stored) {
+        rememberLoginCheckbox.checked = false;
+        return;
+    }
+    try {
+        const parsed = JSON.parse(stored);
+        if (parsed.email) {
+            const emailInput = document.getElementById('loginEmail');
+            if (emailInput) emailInput.value = parsed.email;
+        }
+        if (parsed.password) {
+            const passwordInput = document.getElementById('loginSenha');
+            if (passwordInput) passwordInput.value = parsed.password;
+        }
+        rememberLoginCheckbox.checked = true;
+    } catch (error) {
+        console.warn('Não foi possível restaurar credenciais salvas:', error);
+        localStorage.removeItem('rememberedCredentials');
+        rememberLoginCheckbox.checked = false;
+    }
+}
+
+function atualizarCredenciaisSalvas() {
+    if (!rememberLoginCheckbox) return;
+    if (!rememberLoginCheckbox.checked) {
+        localStorage.removeItem('rememberedCredentials');
+        return;
+    }
+
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginSenha');
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    localStorage.setItem('rememberedCredentials', JSON.stringify({ email, password }));
+}
+
+function configurarPersistenciaRememberMe() {
+    if (!rememberLoginCheckbox) return;
+
+    rememberLoginCheckbox.addEventListener('change', () => {
+        atualizarCredenciaisSalvas();
+    });
+
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginSenha');
+
+    if (emailInput) {
+        emailInput.addEventListener('input', () => {
+            if (rememberLoginCheckbox.checked) {
+                atualizarCredenciaisSalvas();
+            }
+        });
+    }
+
+    if (passwordInput) {
+        passwordInput.addEventListener('input', () => {
+            if (rememberLoginCheckbox.checked) {
+                atualizarCredenciaisSalvas();
+            }
+        });
+    }
+}
+
+// Ajustar padding quando a janela for redimensionada
+window.addEventListener('resize', () => {
+    const token = localStorage.getItem('token');
+    if (token && sidebarMenu && sidebarMenu.style.display === 'flex') {
+        if (window.innerWidth >= 768) {
+            document.body.style.paddingBottom = '90px';
+        } else {
+            document.body.style.paddingBottom = '85px';
+        }
+    }
+});
 
 // Configurar itens do menu baseado no ID do usuário
 function configurarItensMenu(usuarioId) {
@@ -272,6 +366,12 @@ loginFormElement.addEventListener('submit', async (e) => {
             currentUserId = data.usuario.id;
             salvarSecaoAtual('perfil'); // Salvar seção padrão após login
             mostrarMensagem(`Login realizado com sucesso! ID: ${data.usuario.id}`, 'success');
+
+            if (rememberLoginCheckbox) {
+                atualizarCredenciaisSalvas();
+            } else {
+                localStorage.removeItem('rememberedCredentials');
+            }
             
             // Esconder formulários de login/registro IMEDIATAMENTE e FORÇADAMENTE
             if (loginForm) {
@@ -768,7 +868,7 @@ document.addEventListener('submit', async (e) => {
                     }
                     
                     // Atualizar menu ativo para "Meu Perfil"
-                    document.querySelectorAll('.menu-item').forEach(item => {
+                    document.querySelectorAll('.nav-item').forEach(item => {
                         item.classList.remove('active');
                     });
                     const menuPerfil = document.querySelector('[data-section="perfil"]');
@@ -801,7 +901,7 @@ document.addEventListener('submit', async (e) => {
 // Configurar navegação do menu
 function configurarNavegacaoMenu() {
     // Remover listeners anteriores para evitar duplicação
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         // Clonar o elemento para remover listeners antigos
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
@@ -811,7 +911,7 @@ function configurarNavegacaoMenu() {
             const section = newItem.getAttribute('data-section');
             
             // Atualizar menu ativo
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             newItem.classList.add('active');
             
             // Salvar seção atual
@@ -865,7 +965,7 @@ function mostrarSecaoPerfil() {
     if (container) container.classList.add('with-sidebar');
     
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     const menuPerfil = document.querySelector('[data-section="perfil"]');
@@ -913,7 +1013,7 @@ async function mostrarSecaoAdmin() {
     if (container) container.classList.add('with-sidebar');
     
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     const menuAdmin = document.querySelector('[data-section="admin"]');
@@ -2030,7 +2130,7 @@ async function mostrarSecaoConfig() {
     if (container) container.classList.add('with-sidebar');
     
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     const menuConfig = document.querySelector('[data-section="config"]');
@@ -2525,6 +2625,8 @@ function fazerLogout() {
     if (container) container.classList.remove('with-sidebar');
     
     if (pageTitle) pageTitle.textContent = 'Sistema de Login';
+
+    restaurarCredenciaisSalvas();
 }
 
 // ========== FUNÇÕES DO CALENDÁRIO E PROGRAMAÇÕES ==========
@@ -2565,7 +2667,7 @@ async function mostrarSecaoInicio() {
     if (container) container.classList.add('with-sidebar');
     
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     const menuInicio = document.querySelector('[data-section="inicio"]');
@@ -2644,9 +2746,15 @@ function configurarNavegacaoAbasProgramacoes() {
                 const tabContentProgramacoesPassadas = document.getElementById('tabContentProgramacoesPassadas');
                 if (tabContentProgramacoesPassadas) {
                     tabContentProgramacoesPassadas.classList.add('active');
-                    // Carregar programações passadas e aniversariantes quando a aba for ativada
+                    // Carregar programações passadas quando a aba for ativada
                     carregarProgramacoesPassadas();
-                    exibirAniversariantesPassadas();
+                }
+            } else if (tabName === 'aniversariantes') {
+                const tabContentAniversariantes = document.getElementById('tabContentAniversariantes');
+                if (tabContentAniversariantes) {
+                    tabContentAniversariantes.classList.add('active');
+                    // Carregar aniversariantes quando a aba for ativada
+                    carregarAniversariantes();
                 }
             } else if (tabName === 'solicitacoes') {
                 const tabContentSolicitacoes = document.getElementById('tabContentSolicitacoesPendentes');
@@ -5504,10 +5612,17 @@ async function carregarAniversariantes() {
 // Exibir aniversariantes
 function exibirAniversariantes() {
     const listaAniversariantes = document.getElementById('listaAniversariantes');
+    const contadorAniversariantes = document.getElementById('contadorAniversariantes');
+    
     if (!listaAniversariantes) return;
     
+    // Atualizar contador
+    if (contadorAniversariantes) {
+        contadorAniversariantes.textContent = aniversariantesMes.length;
+    }
+    
     if (aniversariantesMes.length === 0) {
-        listaAniversariantes.innerHTML = '<p style="color: #666;">Nenhum aniversariante neste mês.</p>';
+        listaAniversariantes.innerHTML = '<p style="color: #666; padding: 10px; background: white; border-radius: 8px; text-align: center;">Nenhum aniversariante neste mês.</p>';
         return;
     }
     
@@ -5517,35 +5632,12 @@ function exibirAniversariantes() {
         const mesNome = dataNasc.toLocaleDateString('pt-BR', { month: 'long' });
         
         return `
-            <div style="padding: 8px; margin: 5px 0; background: white; border-radius: 5px;">
-                <strong>${aniv.nome || aniv.nome_completo || 'Aniversariante'}</strong> - 
-                ${dia} de ${mesNome}
-                ${aniv.telefone ? ` | 📞 ${aniv.telefone}` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-// Exibir aniversariantes na aba de Programações Passadas
-function exibirAniversariantesPassadas() {
-    const listaAniversariantesPassadas = document.getElementById('listaAniversariantesPassadas');
-    if (!listaAniversariantesPassadas) return;
-    
-    if (aniversariantesMes.length === 0) {
-        listaAniversariantesPassadas.innerHTML = '<p style="color: #666; padding: 10px; background: white; border-radius: 5px;">Nenhum aniversariante neste mês.</p>';
-        return;
-    }
-    
-    listaAniversariantesPassadas.innerHTML = aniversariantesMes.map(aniv => {
-        const dataNasc = new Date(aniv.data_nascimento);
-        const dia = dataNasc.getDate();
-        const mesNome = dataNasc.toLocaleDateString('pt-BR', { month: 'long' });
-        
-        return `
-            <div style="padding: 10px; margin: 8px 0; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <strong style="color: #856404;">${aniv.nome || aniv.nome_completo || 'Aniversariante'}</strong> - 
-                <span style="color: #666;">${dia} de ${mesNome}</span>
-                ${aniv.telefone ? ` | <span style="color: #666;">📞 ${aniv.telefone}</span>` : ''}
+            <div style="padding: 12px; margin: 10px 0; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <strong style="color: #856404; font-size: 16px;">${aniv.nome || aniv.nome_completo || 'Aniversariante'}</strong>
+                <div style="color: #666; margin-top: 5px; font-size: 14px;">
+                    📅 ${dia} de ${mesNome}
+                    ${aniv.telefone ? ` | 📞 ${aniv.telefone}` : ''}
+                </div>
             </div>
         `;
     }).join('');
@@ -6293,7 +6385,7 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     pageTitle.textContent = 'Complete seu Perfil';
     
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     const menuPerfil = document.querySelector('[data-section="perfil"]');
@@ -6426,7 +6518,7 @@ function mostrarPerfilCompleto(data) {
     configurarItensMenu(usuario.id);
 
     // Atualizar menu ativo
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     document.querySelector('[data-section="perfil"]').classList.add('active');

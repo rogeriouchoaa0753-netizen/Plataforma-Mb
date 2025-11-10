@@ -163,3 +163,7 @@ WHERE u.id = 1`, [], (err, usuario) => {
 });
 
 
+
+
+
+
