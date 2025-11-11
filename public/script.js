@@ -738,12 +738,6 @@ document.addEventListener('submit', async (e) => {
             return;
         }
 
-        // Validar ocupação (obrigatória)
-        if (!ocupacao_id) {
-            mostrarMensagem('Selecione uma ocupação', 'error');
-            return;
-        }
-
         // Coletar dados dos filhos e validar CPFs duplicados
         const filhos = [];
         const cpfsUsados = new Set();
