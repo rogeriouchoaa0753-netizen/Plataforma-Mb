@@ -1,10 +1,10 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,281 +28,12 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' })); // Aumentar limite para suportar textos grandes e arquivos
 app.use(express.static('public'));
 
-// Inicializar banco de dados
-const db = new sqlite3.Database('./database.db', (err) => {
-  if (err) {
-    console.error('Erro ao conectar ao banco de dados:', err.message);
-  } else {
-    console.log('Conectado ao banco de dados SQLite');
-    
-    // Criar tabela de usuários se não existir
-    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      senha TEXT NOT NULL,
-      nome_completo TEXT,
-      cpf TEXT UNIQUE,
-      endereco TEXT,
-      cep TEXT,
-      telefone TEXT,
-      estado_civil TEXT,
-      ocupacao_id INTEGER,
-      perfil_completo INTEGER DEFAULT 0,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (ocupacao_id) REFERENCES areas_servicos(id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela:', err.message);
-      } else {
-        console.log('Tabela de usuários criada/verificada');
-        
-        // Adicionar colunas se não existirem (para bancos já criados)
-        const colunas = [
-          'nome_completo', 'cpf', 'endereco', 'cep', 'telefone', 
-          'estado_civil', 'perfil_completo', 'atualizado_em', 'ocupacao_id'
-        ];
-        
-        colunas.forEach(coluna => {
-          db.run(`ALTER TABLE usuarios ADD COLUMN ${coluna}`, (err) => {
-            // Ignora erro se coluna já existir
-          });
-        });
-      }
-    });
-
-    // Criar tabela de relacionamentos (cônjuge e filhos)
-    db.run(`CREATE TABLE IF NOT EXISTS relacionamentos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      usuario_id INTEGER NOT NULL,
-      tipo TEXT NOT NULL,
-      relacionado_id INTEGER NOT NULL,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-      FOREIGN KEY (relacionado_id) REFERENCES usuarios(id),
-      UNIQUE(usuario_id, relacionado_id, tipo)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de relacionamentos:', err.message);
-      } else {
-        console.log('Tabela de relacionamentos criada/verificada');
-      }
-    });
-
-    // Criar tabela de igrejas (antiga regioes)
-    db.run(`CREATE TABLE IF NOT EXISTS igrejas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL UNIQUE,
-      estado TEXT,
-      descricao TEXT,
-      quantidade_vinculados INTEGER DEFAULT 0,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de igrejas:', err.message);
-      } else {
-        console.log('Tabela de igrejas criada/verificada');
-        
-        // Adicionar colunas se não existirem (para bancos já criados)
-        const colunas = ['estado', 'quantidade_vinculados'];
-        colunas.forEach(coluna => {
-          db.run(`ALTER TABLE igrejas ADD COLUMN ${coluna}`, (err) => {
-            // Ignora erro se coluna já existir
-          });
-        });
-      }
-    });
-
-    // Criar tabela de membros da igreja (vínculo usuário-igreja com função)
-    db.run(`CREATE TABLE IF NOT EXISTS igreja_membros (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      igreja_id INTEGER NOT NULL,
-      usuario_id INTEGER NOT NULL,
-      funcao TEXT,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (igreja_id) REFERENCES igrejas(id),
-      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-      UNIQUE(igreja_id, usuario_id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de membros da igreja:', err.message);
-      } else {
-        console.log('Tabela de membros da igreja criada/verificada');
-      }
-    });
-
-    // Criar tabela de áreas/serviços
-    db.run(`CREATE TABLE IF NOT EXISTS areas_servicos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL UNIQUE,
-      descricao TEXT,
-      tipo TEXT NOT NULL DEFAULT 'area',
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de áreas/serviços:', err.message);
-      } else {
-        console.log('Tabela de áreas/serviços criada/verificada');
-      }
-    });
-
-    // Criar tabela de programações/eventos aprovados
-    db.run(`CREATE TABLE IF NOT EXISTS programacoes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      titulo TEXT NOT NULL,
-      descricao TEXT,
-      data_evento DATE NOT NULL,
-      data_fim_evento DATE,
-      hora_evento TIME,
-      local_evento TEXT,
-      igreja_id INTEGER,
-      criado_por INTEGER NOT NULL,
-      aprovado_por INTEGER,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (criado_por) REFERENCES usuarios(id),
-      FOREIGN KEY (aprovado_por) REFERENCES usuarios(id),
-      FOREIGN KEY (igreja_id) REFERENCES igrejas(id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de programações:', err.message);
-      } else {
-        console.log('Tabela de programações criada/verificada');
-        
-        // Adicionar colunas se não existirem (para bancos já criados)
-        const colunas = [
-          { nome: 'data_fim_evento', tipo: 'DATE' },
-          { nome: 'igreja_id', tipo: 'INTEGER' },
-          { nome: 'observacoes', tipo: 'TEXT' },
-          { nome: 'codigo', tipo: 'TEXT' } // Sem UNIQUE para permitir adicionar em tabelas existentes
-        ];
-        colunas.forEach(coluna => {
-          db.run(`ALTER TABLE programacoes ADD COLUMN ${coluna.nome} ${coluna.tipo}`, (err) => {
-            // Ignora erro se coluna já existir
-          });
-        });
-        
-        // Gerar códigos para programações existentes que não têm código
-        db.all('SELECT id FROM programacoes WHERE codigo IS NULL OR codigo = ""', [], (err, rows) => {
-          if (!err && rows && rows.length > 0) {
-            rows.forEach((row, index) => {
-              const ano = new Date().getFullYear();
-              const codigo = `PRG-${ano}-${String(index + 1).padStart(3, '0')}`;
-              db.run('UPDATE programacoes SET codigo = ? WHERE id = ?', [codigo, row.id], (err2) => {
-                if (err2) {
-                  console.error('Erro ao gerar código para programação:', err2);
-                }
-              });
-            });
-          }
-        });
-      }
-    });
-    
-    // Criar tabela de membros vinculados a programações
-    db.run(`CREATE TABLE IF NOT EXISTS programacao_membros (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      programacao_id INTEGER NOT NULL,
-      usuario_id INTEGER NOT NULL,
-      hora_especifica TIME,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (programacao_id) REFERENCES programacoes(id) ON DELETE CASCADE,
-      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-      UNIQUE(programacao_id, usuario_id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de membros de programação:', err.message);
-      } else {
-        console.log('Tabela de membros de programação criada/verificada');
-      }
-    });
-
-    // Criar tabela de solicitações de eventos (aguardando aprovação)
-    db.run(`CREATE TABLE IF NOT EXISTS solicitacoes_eventos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      titulo TEXT NOT NULL,
-      descricao TEXT,
-      data_evento DATE NOT NULL,
-      data_fim_evento DATE,
-      hora_evento TIME,
-      local_evento TEXT,
-      igreja_id INTEGER,
-      solicitado_por INTEGER NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pendente',
-      aprovado_por INTEGER,
-      observacoes TEXT,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (solicitado_por) REFERENCES usuarios(id),
-      FOREIGN KEY (aprovado_por) REFERENCES usuarios(id),
-      FOREIGN KEY (igreja_id) REFERENCES igrejas(id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de solicitações de eventos:', err.message);
-      } else {
-        console.log('Tabela de solicitações de eventos criada/verificada');
-        
-        // Adicionar colunas se não existirem (para bancos já criados)
-        const colunas = ['data_fim_evento', 'igreja_id'];
-        colunas.forEach(coluna => {
-          db.run(`ALTER TABLE solicitacoes_eventos ADD COLUMN ${coluna}`, (err) => {
-            // Ignora erro se coluna já existir
-          });
-        });
-      }
-    });
-
-    // Adicionar coluna data_nascimento na tabela usuarios se não existir
-    db.run(`ALTER TABLE usuarios ADD COLUMN data_nascimento DATE`, (err) => {
-      // Ignora erro se coluna já existir
-    });
-    
-    // Criar tabela de confirmações de presença
-    db.run(`CREATE TABLE IF NOT EXISTS confirmacoes_presenca (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      programacao_id INTEGER NOT NULL,
-      usuario_id INTEGER NOT NULL,
-      status TEXT NOT NULL DEFAULT 'presente',
-      justificativa TEXT,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (programacao_id) REFERENCES programacoes(id) ON DELETE CASCADE,
-      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-      UNIQUE(programacao_id, usuario_id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de confirmações de presença:', err.message);
-      } else {
-        console.log('Tabela de confirmações de presença criada/verificada');
-      }
-    });
-    
-    // Criar tabela de anexos/notas de programações
-    db.run(`CREATE TABLE IF NOT EXISTS programacao_anexos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      programacao_id INTEGER NOT NULL,
-      usuario_id INTEGER NOT NULL,
-      tipo TEXT NOT NULL DEFAULT 'nota',
-      titulo TEXT,
-      conteudo TEXT,
-      arquivo_nome TEXT,
-      arquivo_tipo TEXT,
-      arquivo_dados BLOB,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (programacao_id) REFERENCES programacoes(id) ON DELETE CASCADE,
-      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-    )`, (err) => {
-      if (err) {
-        console.error('Erro ao criar tabela de anexos de programação:', err.message);
-      } else {
-        console.log('Tabela de anexos de programação criada/verificada');
-      }
-    });
-  }
-});
+db.initialize()
+  .then(() => console.log('Banco de dados PostgreSQL inicializado com sucesso'))
+  .catch((error) => {
+    console.error('Erro ao inicializar banco de dados:', error);
+    process.exit(1);
+  });
 
 // Middleware de autenticação
 const authenticateToken = (req, res, next) => {
@@ -3110,13 +2841,13 @@ app.listen(PORT, () => {
 });
 
 // Fechar banco de dados ao encerrar
-process.on('SIGINT', () => {
-  db.close((err) => {
-    if (err) {
-      console.error(err.message);
-    }
+process.on('SIGINT', async () => {
+  try {
+    await db.close();
     console.log('Conexão com banco de dados fechada.');
-    process.exit(0);
-  });
+  } catch (err) {
+    console.error('Erro ao fechar banco de dados:', err.message || err);
+  }
+  process.exit(0);
 });
 

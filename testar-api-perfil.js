@@ -51,3 +51,5 @@ db.get(`SELECT u.id, u.nome, u.nome_completo, u.email, u.cpf, u.telefone, u.ende
 
 
 
+
+
