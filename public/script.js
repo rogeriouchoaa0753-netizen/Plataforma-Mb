@@ -56,6 +56,11 @@ const rememberLoginCheckbox = document.getElementById('rememberLogin');
 const logoutBtn = document.getElementById('logoutBtn');
 const messageDiv = document.getElementById('message');
 const pageTitle = document.getElementById('pageTitle');
+const cadastroCredenciaisSection = document.getElementById('cadastroCredenciaisSection');
+const cadastroNomeInput = document.getElementById('cadastroNome');
+const cadastroEmailInput = document.getElementById('cadastroEmail');
+const cadastroSenhaInput = document.getElementById('cadastroSenha');
+const cadastroSenhaConfirmInput = document.getElementById('cadastroSenhaConfirm');
 let currentUserId = null;
 
 
@@ -96,11 +101,6 @@ function esconderFormulariosLogin() {
         loginForm.style.display = 'none';
         loginForm.style.visibility = 'hidden';
     }
-    if (registerForm) {
-        registerForm.classList.remove('active');
-        registerForm.style.display = 'none';
-        registerForm.style.visibility = 'hidden';
-    }
 }
 
 // Garantir que o menu esteja sempre visível quando o usuário estiver logado
@@ -124,6 +124,120 @@ function garantirSidebarVisivel() {
         sidebarMenu.style.display = 'none';
         document.body.style.paddingBottom = '20px';
         document.body.classList.remove('body-with-sidebar');
+    }
+}
+
+function mostrarFormularioLogin() {
+    limparMensagem();
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'none';
+    }
+    if (cadastroCredenciaisSection) {
+        cadastroCredenciaisSection.style.display = 'none';
+    }
+    if (perfilCompletoFormElement) {
+        delete perfilCompletoFormElement.dataset.mode;
+    }
+    if (registerForm) {
+        registerForm.classList.remove('active');
+        registerForm.style.display = 'none';
+        registerForm.style.visibility = 'hidden';
+    }
+    if (loginForm) {
+        loginForm.classList.add('active');
+        loginForm.style.display = 'block';
+        loginForm.style.visibility = 'visible';
+    }
+    const cpfInput = document.getElementById('cpf');
+    if (cpfInput) {
+        cpfInput.value = '';
+        cpfInput.readOnly = true;
+        cpfInput.style.backgroundColor = '#f5f5f5';
+        cpfInput.style.cursor = 'not-allowed';
+    }
+    if (sidebarMenu) {
+        sidebarMenu.style.display = 'none';
+    }
+    document.body.classList.remove('body-with-sidebar');
+    document.body.style.paddingBottom = '20px';
+}
+
+function ativarCadastroCompleto() {
+    esconderFormulariosLogin();
+    limparMensagem();
+
+    if (inicioSection) inicioSection.style.display = 'none';
+    if (profileSection) profileSection.style.display = 'none';
+    if (adminSection) adminSection.style.display = 'none';
+    if (configSection) configSection.style.display = 'none';
+
+    if (sidebarMenu) {
+        sidebarMenu.style.display = 'none';
+    }
+    document.body.classList.remove('body-with-sidebar');
+    document.body.style.paddingBottom = '20px';
+
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.display = 'block';
+        abrirModalForm(perfilCompletoForm);
+    }
+
+    if (perfilCompletoFormElement) {
+        perfilCompletoFormElement.reset();
+        perfilCompletoFormElement.dataset.mode = 'registro';
+    }
+
+    if (cadastroCredenciaisSection) {
+        cadastroCredenciaisSection.style.display = 'block';
+    }
+
+    const cpfInput = document.getElementById('cpf');
+    if (cpfInput) {
+        cpfInput.value = '';
+        cpfInput.removeAttribute('readonly');
+        cpfInput.style.backgroundColor = 'white';
+        cpfInput.style.cursor = 'text';
+    }
+
+    const perfilOcupacao = document.getElementById('perfilOcupacao');
+    if (perfilOcupacao) perfilOcupacao.value = '';
+    const perfilIgreja = document.getElementById('perfilIgreja');
+    if (perfilIgreja) perfilIgreja.value = '';
+    const estadoCivil = document.getElementById('estadoCivil');
+    if (estadoCivil) estadoCivil.value = '';
+    const temFilhos = document.getElementById('temFilhos');
+    if (temFilhos) temFilhos.value = '';
+    const quantidadeFilhos = document.getElementById('quantidadeFilhos');
+    if (quantidadeFilhos) quantidadeFilhos.value = '';
+
+    const quantidadeFilhosGroup = document.getElementById('quantidadeFilhosGroup');
+    if (quantidadeFilhosGroup) quantidadeFilhosGroup.style.display = 'none';
+    const camposFilhos = document.getElementById('camposFilhos');
+    if (camposFilhos) camposFilhos.style.display = 'none';
+    const listaFilhos = document.getElementById('listaFilhos');
+    if (listaFilhos) listaFilhos.innerHTML = '';
+    const filhosList = document.getElementById('filhosList');
+    if (filhosList) filhosList.innerHTML = '';
+    const conjugeInfo = document.getElementById('conjugeInfo');
+    if (conjugeInfo) conjugeInfo.innerHTML = '';
+    const buscarConjuge = document.getElementById('buscarConjuge');
+    if (buscarConjuge) buscarConjuge.style.display = 'none';
+    const buscarFilho = document.getElementById('buscarFilho');
+    if (buscarFilho) buscarFilho.style.display = 'none';
+    const relacionamentosSection = document.getElementById('relacionamentosSection');
+    if (relacionamentosSection) relacionamentosSection.style.display = 'none';
+
+    if (cadastroNomeInput) cadastroNomeInput.value = '';
+    if (cadastroEmailInput) cadastroEmailInput.value = '';
+    if (cadastroSenhaInput) cadastroSenhaInput.value = '';
+    if (cadastroSenhaConfirmInput) cadastroSenhaConfirmInput.value = '';
+
+    pageTitle.textContent = 'Crie sua Conta';
+
+    carregarOcupacoesEIgrejasPerfil();
+
+    if (cadastroNomeInput) {
+        cadastroNomeInput.focus();
     }
 }
 
@@ -312,21 +426,19 @@ async function restaurarSecaoSalva() {
 }
 
 // Alternar entre formulários
-showRegisterLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginForm.classList.remove('active');
-    registerForm.classList.add('active');
-    abrirModalForm(registerForm);
-    limparMensagem();
-});
+if (showRegisterLink) {
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        ativarCadastroCompleto();
+    });
+}
 
-showLoginLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerForm.classList.remove('active');
-    loginForm.classList.add('active');
-    // fecharModalForms();
-    limparMensagem();
-});
+if (showLoginLink) {
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        mostrarFormularioLogin();
+    });
+}
 
 // Login
 loginFormElement.addEventListener('submit', async (e) => {
@@ -442,63 +554,6 @@ loginFormElement.addEventListener('submit', async (e) => {
     }
 });
 
-// Carregar ocupações para o select de cadastro
-async function carregarOcupacoes() {
-    try {
-        const response = await fetch(`${API_URL}/ocupacoes`);
-        const data = await response.json();
-        
-        if (response.ok && data.ocupacoes) {
-            const selectOcupacao = document.getElementById('registerOcupacao');
-            if (selectOcupacao) {
-                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação (opcional)...</option>';
-                data.ocupacoes.forEach(ocupacao => {
-                    const option = document.createElement('option');
-                    option.value = ocupacao.id;
-                    option.textContent = ocupacao.nome;
-                    selectOcupacao.appendChild(option);
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao carregar ocupações:', error);
-    }
-}
-
-// Carregar igrejas para o select de cadastro (rota pública)
-async function carregarIgrejasPublicas() {
-    try {
-        const response = await fetch(`${API_URL}/igrejas-publicas`);
-        const data = await response.json();
-        
-        if (response.ok && data.igrejas) {
-            const selectIgreja = document.getElementById('registerIgreja');
-            if (selectIgreja) {
-                selectIgreja.innerHTML = '<option value="">Selecione uma igreja (opcional)...</option>';
-                data.igrejas.forEach(igreja => {
-                    const option = document.createElement('option');
-                    option.value = igreja.id;
-                    option.textContent = igreja.nome;
-                    selectIgreja.appendChild(option);
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao carregar igrejas:', error);
-        // Se a rota não existir, deixar vazio
-        const selectIgreja = document.getElementById('registerIgreja');
-        if (selectIgreja) {
-            selectIgreja.innerHTML = '<option value="">Nenhuma igreja disponível</option>';
-        }
-    }
-}
-
-// Carregar ocupações e igrejas quando a página carregar
-window.addEventListener('DOMContentLoaded', () => {
-    carregarOcupacoes();
-    carregarIgrejasPublicas();
-});
-
 // Carregar ocupações e igrejas para o formulário de perfil
 async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igrejaIdSelecionada = null) {
     try {
@@ -545,109 +600,20 @@ async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igr
         console.error('Erro ao carregar ocupações e igrejas:', error);
     }
 }
-// Registro
-registerFormElement.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    limparMensagem();
-
-    const nome = document.getElementById('registerNome')?.value?.trim();
-    const email = document.getElementById('registerEmail')?.value?.trim();
-    const cpf = document.getElementById('registerCpf')?.value.replace(/\D/g, '');
-    const ocupacaoId = document.getElementById('registerOcupacao')?.value;
-    const igrejaId = document.getElementById('registerIgreja')?.value;
-    const senha = document.getElementById('registerSenha')?.value;
-
-    console.log('[Frontend] Dados do registro:', { nome, email, cpf: cpf ? '***' : '', ocupacaoId, igrejaId, senha: senha ? '***' : '' });
-
-    // Validação básica
-    if (!nome || !email || !cpf || !senha) {
-        mostrarMensagem('Preencha todos os campos obrigatórios', 'error');
-        return;
-    }
-
-    if (senha.length < 6) {
-        mostrarMensagem('A senha deve ter pelo menos 6 caracteres', 'error');
-        return;
-    }
-
-    try {
-        const bodyData = { 
-            nome, 
-            email, 
-            senha, 
-            cpf
-        };
-        
-        if (ocupacaoId) {
-            bodyData.ocupacao_id = parseInt(ocupacaoId);
-        }
-        
-        // Adicionar igreja_id se foi selecionada
-        if (igrejaId) {
-            bodyData.igreja_id = parseInt(igrejaId);
-        }
-
-        console.log('[Frontend] Enviando registro...', { ...bodyData, senha: '***', cpf: '***' });
-
-        const response = await fetch(`${API_URL}/registro`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(bodyData)
-        });
-
-        const data = await response.json();
-        console.log('[Frontend] Resposta do registro:', data);
-
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            currentUserId = data.usuario.id;
-            salvarSecaoAtual('editar'); // Salvar seção de edição após registro (para completar perfil)
-            mostrarMensagem(`Cadastro realizado com sucesso! ID: ${data.usuario.id}`, 'success');
-            // fecharModalForms();
-            // Esconder formulário de registro e ir direto ao perfil
-            // Esconder formulários de login/registro IMEDIATAMENTE e FORÇADAMENTE
-            if (loginForm) {
-                loginForm.classList.remove('active');
-                loginForm.style.display = 'none';
-                loginForm.style.visibility = 'hidden';
-            }
-            if (registerForm) {
-                registerForm.classList.remove('active');
-                registerForm.style.display = 'none';
-                registerForm.style.visibility = 'hidden';
-            }
-            
-            // Garantir que o sidebar esteja visível
-            garantirSidebarVisivel();
-            
-            // Configurar itens do menu baseado no ID do usuário
-            configurarItensMenu(currentUserId);
-            
-            setTimeout(async () => {
-                await carregarPerfilCompleto();
-            }, 1500);
-        } else {
-            // Se CPF já existe, mostrar ID da conta
-            if (data.conta_existente) {
-                mostrarMensagem(`${data.mensagem || 'CPF já cadastrado'}. ID da conta: ${data.conta_existente.id}`, 'error');
-            } else {
-                mostrarMensagem(data.erro || 'Erro ao cadastrar', 'error');
-            }
-        }
-    } catch (error) {
-        mostrarMensagem('Erro ao conectar com o servidor', 'error');
-    }
-});
-
 // Botão cancelar perfil completo
 const cancelarPerfilCompleto = document.getElementById('cancelarPerfilCompleto');
 if (cancelarPerfilCompleto) {
     cancelarPerfilCompleto.addEventListener('click', () => {
+        if (!perfilCompletoFormElement) return;
+        if (perfilCompletoFormElement.dataset.mode === 'registro') {
+            if (confirm('Deseja cancelar o cadastro? Os dados preenchidos serão descartados.')) {
+                mostrarFormularioLogin();
+            }
+            return;
+        }
         if (confirm('Deseja cancelar? As alterações não serão salvas.')) {
-            perfilCompletoForm.style.display = 'none';
-            profileSection.style.display = 'block';
+            if (perfilCompletoForm) perfilCompletoForm.style.display = 'none';
+            if (profileSection) profileSection.style.display = 'block';
             carregarPerfilCompleto();
         }
     });
@@ -819,7 +785,107 @@ document.addEventListener('submit', async (e) => {
                 quantidadeFilhos: filhos.length,
                 filhos: filhos 
             });
-            const token = localStorage.getItem('token');
+            let token = localStorage.getItem('token');
+
+            if (perfilCompletoFormElement?.dataset.mode === 'registro') {
+                const cadastroNome = cadastroNomeInput?.value?.trim();
+                const cadastroEmail = cadastroEmailInput?.value?.trim();
+                const cadastroSenha = cadastroSenhaInput?.value || '';
+                const cadastroSenhaConfirm = cadastroSenhaConfirmInput?.value || '';
+
+                if (!cadastroNome || !cadastroEmail || !cadastroSenha || !cadastroSenhaConfirm) {
+                    mostrarMensagem('Preencha os dados de acesso (nome, email e senha).', 'error');
+                    return;
+                }
+
+                if (!cpf) {
+                    mostrarMensagem('Informe o CPF para concluir o cadastro.', 'error');
+                    return;
+                }
+
+                if (cadastroSenha.length < 6) {
+                    mostrarMensagem('A senha deve ter pelo menos 6 caracteres.', 'error');
+                    return;
+                }
+
+                if (cadastroSenha !== cadastroSenhaConfirm) {
+                    mostrarMensagem('As senhas informadas não conferem.', 'error');
+                    return;
+                }
+
+                try {
+                    const registroBody = {
+                        nome: cadastroNome,
+                        email: cadastroEmail,
+                        senha: cadastroSenha,
+                        cpf
+                    };
+
+                    if (ocupacao_id) {
+                        registroBody.ocupacao_id = parseInt(ocupacao_id);
+                    }
+                    if (igreja_id) {
+                        registroBody.igreja_id = parseInt(igreja_id);
+                    }
+
+                    const registroResponse = await fetch(`${API_URL}/registro`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(registroBody)
+                    });
+
+                    let registroData;
+                    try {
+                        registroData = await registroResponse.json();
+                    } catch (jsonError) {
+                        console.error('Erro ao interpretar resposta do registro:', jsonError);
+                        mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente em instantes.', 'error');
+                        return;
+                    }
+
+                    if (!registroResponse.ok) {
+                        if (registroData && registroData.conta_existente) {
+                            mostrarMensagem(`${registroData.mensagem || 'CPF já cadastrado.'} ID da conta: ${registroData.conta_existente.id}`, 'error');
+                        } else {
+                            mostrarMensagem(registroData.erro || 'Erro ao realizar cadastro.', 'error');
+                        }
+                        return;
+                    }
+
+                    localStorage.setItem('token', registroData.token);
+                    token = registroData.token;
+                    currentUserId = registroData.usuario.id;
+                    salvarSecaoAtual('perfil');
+                    mostrarMensagem('Cadastro inicial concluído! Agora finalize seu perfil.', 'success');
+
+                    garantirSidebarVisivel();
+                    configurarItensMenu(currentUserId);
+
+                    if (cadastroCredenciaisSection) {
+                        cadastroCredenciaisSection.style.display = 'none';
+                    }
+                    if (perfilCompletoFormElement) {
+                        perfilCompletoFormElement.dataset.mode = 'edicao';
+                    }
+                    const cpfFormatado = registroData.usuario.cpf || cpf;
+                    if (cpfInput && cpfFormatado) {
+                        let cpfMask = cpfFormatado.replace(/\D/g, '');
+                        cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
+                        cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
+                        cpfMask = cpfMask.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                        cpfInput.value = cpfMask;
+                        cpfInput.readOnly = true;
+                        cpfInput.style.backgroundColor = '#f5f5f5';
+                        cpfInput.style.cursor = 'not-allowed';
+                    }
+                } catch (registroError) {
+                    console.error('Erro durante o cadastro inicial:', registroError);
+                    mostrarMensagem('Erro ao criar conta. Tente novamente.', 'error');
+                    return;
+                }
+            }
             
             if (!token) {
                 mostrarMensagem('Sessão expirada. Faça login novamente.', 'error');
@@ -6401,6 +6467,15 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     perfilCompletoForm.style.display = 'block';
     abrirModalForm(perfilCompletoForm);
     pageTitle.textContent = 'Complete seu Perfil';
+    
+    if (perfilCompletoFormElement) {
+        perfilCompletoFormElement.dataset.mode = 'edicao';
+    }
+    if (cadastroCredenciaisSection) {
+        cadastroCredenciaisSection.style.display = 'none';
+    }
+    const relacionamentosSection = document.getElementById('relacionamentosSection');
+    if (relacionamentosSection) relacionamentosSection.style.display = 'block';
     
     // Atualizar menu ativo
     document.querySelectorAll('.nav-item').forEach(item => {
