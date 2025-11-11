@@ -58,10 +58,15 @@ const messageDiv = document.getElementById('message');
 const pageTitle = document.getElementById('pageTitle');
 const cadastroCredenciaisSection = document.getElementById('cadastroCredenciaisSection');
 const cadastroNomeInput = document.getElementById('cadastroNome');
+const cadastroSobrenomeInput = document.getElementById('cadastroSobrenome');
 const cadastroEmailInput = document.getElementById('cadastroEmail');
+const cadastroCpfInput = document.getElementById('cadastroCpf');
 const cadastroSenhaInput = document.getElementById('cadastroSenha');
-const cadastroSenhaConfirmInput = document.getElementById('cadastroSenhaConfirm');
+const perfilDadosSection = document.getElementById('perfilDadosSection');
 let currentUserId = null;
+
+if (cadastroNomeInput) cadastroNomeInput.addEventListener('input', atualizarEmailInstitucional);
+if (cadastroSobrenomeInput) cadastroSobrenomeInput.addEventListener('input', atualizarEmailInstitucional);
 
 
 // Verificar se já está logado
@@ -135,6 +140,9 @@ function mostrarFormularioLogin() {
     if (cadastroCredenciaisSection) {
         cadastroCredenciaisSection.style.display = 'none';
     }
+    if (perfilDadosSection) {
+        perfilDadosSection.style.display = 'none';
+    }
     if (perfilCompletoFormElement) {
         delete perfilCompletoFormElement.dataset.mode;
     }
@@ -190,6 +198,9 @@ function ativarCadastroCompleto() {
     if (cadastroCredenciaisSection) {
         cadastroCredenciaisSection.style.display = 'block';
     }
+    if (perfilDadosSection) {
+        perfilDadosSection.style.display = 'none';
+    }
 
     const cpfInput = document.getElementById('cpf');
     if (cpfInput) {
@@ -228,9 +239,11 @@ function ativarCadastroCompleto() {
     if (relacionamentosSection) relacionamentosSection.style.display = 'none';
 
     if (cadastroNomeInput) cadastroNomeInput.value = '';
+    if (cadastroSobrenomeInput) cadastroSobrenomeInput.value = '';
     if (cadastroEmailInput) cadastroEmailInput.value = '';
+    if (cadastroCpfInput) cadastroCpfInput.value = '';
     if (cadastroSenhaInput) cadastroSenhaInput.value = '';
-    if (cadastroSenhaConfirmInput) cadastroSenhaConfirmInput.value = '';
+    atualizarEmailInstitucional();
 
     pageTitle.textContent = 'Crie sua Conta';
 
@@ -280,6 +293,125 @@ function atualizarCredenciaisSalvas() {
     const password = passwordInput ? passwordInput.value : '';
 
     localStorage.setItem('rememberedCredentials', JSON.stringify({ email, password }));
+}
+
+function removerAcentos(texto = '') {
+    return texto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, '')
+        .trim();
+}
+
+function gerarEmailInstitucional(nome = '', sobrenome = '') {
+    const nomeSanitizado = removerAcentos(nome).replace(/\s+/g, '');
+    const sobrenomeSanitizado = removerAcentos(sobrenome).replace(/\s+/g, '');
+    if (!nomeSanitizado && !sobrenomeSanitizado) return '';
+    const base = `${nomeSanitizado}${sobrenomeSanitizado}`.toLowerCase();
+    return `${base}@admb.com`;
+}
+
+function atualizarEmailInstitucional() {
+    if (!cadastroEmailInput) return;
+    const emailGerado = gerarEmailInstitucional(cadastroNomeInput?.value, cadastroSobrenomeInput?.value);
+    cadastroEmailInput.value = emailGerado;
+}
+
+async function processarCadastroInicial() {
+    const primeiroNome = cadastroNomeInput?.value?.trim() || '';
+    const sobrenome = cadastroSobrenomeInput?.value?.trim() || '';
+    const cpfCadastro = cadastroCpfInput?.value?.replace(/\D/g, '') || '';
+    const senhaCadastro = cadastroSenhaInput?.value || '';
+    const emailGerado = gerarEmailInstitucional(primeiroNome, sobrenome);
+
+    if (!primeiroNome || !sobrenome) {
+        mostrarMensagem('Informe nome e sobrenome para gerar o email.', 'error');
+        return;
+    }
+
+    if (!emailGerado) {
+        mostrarMensagem('Não foi possível gerar o email institucional. Verifique os nomes informados.', 'error');
+        return;
+    }
+
+    cadastroEmailInput.value = emailGerado;
+
+    if (!cpfCadastro || cpfCadastro.length !== 11) {
+        mostrarMensagem('Informe um CPF válido (11 dígitos).', 'error');
+        return;
+    }
+
+    if (!senhaCadastro || senhaCadastro.length < 6) {
+        mostrarMensagem('Informe uma senha com pelo menos 6 caracteres.', 'error');
+        return;
+    }
+
+    const nomeCompleto = `${primeiroNome} ${sobrenome}`.replace(/\s+/g, ' ').trim();
+    const payload = {
+        nome: nomeCompleto,
+        email: emailGerado,
+        senha: senhaCadastro,
+        cpf: cpfCadastro
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/registro`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('Erro ao interpretar resposta do cadastro:', parseError);
+            mostrarMensagem('Erro inesperado ao criar a conta. Tente novamente.', 'error');
+            return;
+        }
+
+        if (!response.ok) {
+            const mensagemErro = data?.erro || data?.mensagem || 'Não foi possível criar a conta.';
+            mostrarMensagem(mensagemErro, 'error');
+            return;
+        }
+
+        mostrarMensagem('Conta criada com sucesso! Complete seu perfil quando quiser.', 'success');
+        localStorage.setItem('token', data.token);
+        currentUserId = data.usuario.id;
+        salvarSecaoAtual('inicio');
+
+        garantirSidebarVisivel();
+        configurarItensMenu(currentUserId);
+
+        if (perfilCompletoFormElement) {
+            perfilCompletoFormElement.dataset.mode = 'edicao';
+        }
+        if (cadastroCredenciaisSection) {
+            cadastroCredenciaisSection.style.display = 'none';
+        }
+        if (perfilDadosSection) {
+            perfilDadosSection.style.display = 'block';
+        }
+
+        const cpfInputPerfil = document.getElementById('cpf');
+        if (cpfInputPerfil) {
+            let cpfMask = cpfCadastro.replace(/(\d{3})(\d)/, '$1.$2');
+            cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
+            cpfMask = cpfMask.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            cpfInputPerfil.value = cpfMask;
+            cpfInputPerfil.readOnly = true;
+            cpfInputPerfil.style.backgroundColor = '#f5f5f5';
+            cpfInputPerfil.style.cursor = 'not-allowed';
+        }
+
+        await carregarPerfilCompleto();
+    } catch (error) {
+        console.error('Erro ao criar conta:', error);
+        mostrarMensagem('Erro ao criar conta. Verifique sua conexão e tente novamente.', 'error');
+    }
 }
 
 function configurarPersistenciaRememberMe() {
@@ -686,6 +818,12 @@ document.addEventListener('submit', async (e) => {
         console.log('Formulário de perfil submetido');
         limparMensagem();
 
+        const modoFormulario = perfilCompletoFormElement?.dataset.mode || 'edicao';
+        if (modoFormulario === 'registro') {
+            await processarCadastroInicial();
+            return;
+        }
+
         const nome_completo = document.getElementById('nomeCompleto')?.value.trim();
         const cpfInput = document.getElementById('cpf');
         // Se CPF estiver readonly, não enviar (já está cadastrado)
@@ -786,106 +924,6 @@ document.addEventListener('submit', async (e) => {
                 filhos: filhos 
             });
             let token = localStorage.getItem('token');
-
-            if (perfilCompletoFormElement?.dataset.mode === 'registro') {
-                const cadastroNome = cadastroNomeInput?.value?.trim();
-                const cadastroEmail = cadastroEmailInput?.value?.trim();
-                const cadastroSenha = cadastroSenhaInput?.value || '';
-                const cadastroSenhaConfirm = cadastroSenhaConfirmInput?.value || '';
-
-                if (!cadastroNome || !cadastroEmail || !cadastroSenha || !cadastroSenhaConfirm) {
-                    mostrarMensagem('Preencha os dados de acesso (nome, email e senha).', 'error');
-                    return;
-                }
-
-                if (!cpf) {
-                    mostrarMensagem('Informe o CPF para concluir o cadastro.', 'error');
-                    return;
-                }
-
-                if (cadastroSenha.length < 6) {
-                    mostrarMensagem('A senha deve ter pelo menos 6 caracteres.', 'error');
-                    return;
-                }
-
-                if (cadastroSenha !== cadastroSenhaConfirm) {
-                    mostrarMensagem('As senhas informadas não conferem.', 'error');
-                    return;
-                }
-
-                try {
-                    const registroBody = {
-                        nome: cadastroNome,
-                        email: cadastroEmail,
-                        senha: cadastroSenha,
-                        cpf
-                    };
-
-                    if (ocupacao_id) {
-                        registroBody.ocupacao_id = parseInt(ocupacao_id);
-                    }
-                    if (igreja_id) {
-                        registroBody.igreja_id = parseInt(igreja_id);
-                    }
-
-                    const registroResponse = await fetch(`${API_URL}/registro`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(registroBody)
-                    });
-
-                    let registroData;
-                    try {
-                        registroData = await registroResponse.json();
-                    } catch (jsonError) {
-                        console.error('Erro ao interpretar resposta do registro:', jsonError);
-                        mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente em instantes.', 'error');
-                        return;
-                    }
-
-                    if (!registroResponse.ok) {
-                        if (registroData && registroData.conta_existente) {
-                            mostrarMensagem(`${registroData.mensagem || 'CPF já cadastrado.'} ID da conta: ${registroData.conta_existente.id}`, 'error');
-                        } else {
-                            mostrarMensagem(registroData.erro || 'Erro ao realizar cadastro.', 'error');
-                        }
-                        return;
-                    }
-
-                    localStorage.setItem('token', registroData.token);
-                    token = registroData.token;
-                    currentUserId = registroData.usuario.id;
-                    salvarSecaoAtual('perfil');
-                    mostrarMensagem('Cadastro inicial concluído! Agora finalize seu perfil.', 'success');
-
-                    garantirSidebarVisivel();
-                    configurarItensMenu(currentUserId);
-
-                    if (cadastroCredenciaisSection) {
-                        cadastroCredenciaisSection.style.display = 'none';
-                    }
-                    if (perfilCompletoFormElement) {
-                        perfilCompletoFormElement.dataset.mode = 'edicao';
-                    }
-                    const cpfFormatado = registroData.usuario.cpf || cpf;
-                    if (cpfInput && cpfFormatado) {
-                        let cpfMask = cpfFormatado.replace(/\D/g, '');
-                        cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
-                        cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
-                        cpfMask = cpfMask.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                        cpfInput.value = cpfMask;
-                        cpfInput.readOnly = true;
-                        cpfInput.style.backgroundColor = '#f5f5f5';
-                        cpfInput.style.cursor = 'not-allowed';
-                    }
-                } catch (registroError) {
-                    console.error('Erro durante o cadastro inicial:', registroError);
-                    mostrarMensagem('Erro ao criar conta. Tente novamente.', 'error');
-                    return;
-                }
-            }
             
             if (!token) {
                 mostrarMensagem('Sessão expirada. Faça login novamente.', 'error');
@@ -6473,6 +6511,9 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     }
     if (cadastroCredenciaisSection) {
         cadastroCredenciaisSection.style.display = 'none';
+    }
+    if (perfilDadosSection) {
+        perfilDadosSection.style.display = 'block';
     }
     const relacionamentosSection = document.getElementById('relacionamentosSection');
     if (relacionamentosSection) relacionamentosSection.style.display = 'block';

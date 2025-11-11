@@ -92,24 +92,32 @@
                 <form id="perfilCompletoFormElement" style="max-height: 70vh; overflow-y: auto; padding-right: 10px;">
                     <div id="cadastroCredenciaisSection" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                         <h3 style="color: #667eea; margin-bottom: 15px;">Dados de Acesso</h3>
-                        <div class="form-group">
-                            <label for="cadastroNome">Nome de exibição / usuário *:</label>
-                            <input type="text" id="cadastroNome" placeholder="Como deseja ser chamado" autocomplete="name" required>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 10px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="cadastroNome">Nome *</label>
+                                <input type="text" id="cadastroNome" placeholder="Primeiro nome" autocomplete="given-name">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="cadastroSobrenome">Sobrenome *</label>
+                                <input type="text" id="cadastroSobrenome" placeholder="Sobrenome" autocomplete="family-name">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="cadastroEmail">Email *:</label>
-                            <input type="email" id="cadastroEmail" placeholder="seuemail@exemplo.com" autocomplete="email" required>
+                            <label for="cadastroEmail">Email institucional *</label>
+                            <input type="text" id="cadastroEmail" placeholder="gerado automaticamente" autocomplete="off" readonly style="background-color: #eee; cursor: not-allowed;">
+                            <small style="color: #666; font-size: 12px;">O email é gerado automaticamente no formato nome+sobrenome@admb.com</small>
                         </div>
                         <div class="form-group">
-                            <label for="cadastroSenha">Senha *:</label>
-                            <input type="password" id="cadastroSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" required>
+                            <label for="cadastroCpf">CPF *</label>
+                            <input type="text" id="cadastroCpf" placeholder="000.000.000-00" autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="cadastroSenhaConfirm">Confirmar senha *:</label>
-                            <input type="password" id="cadastroSenhaConfirm" placeholder="Repita a senha" autocomplete="new-password" minlength="6" required>
+                            <label for="cadastroSenha">Senha *</label>
+                            <input type="password" id="cadastroSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6">
                         </div>
-                        <p style="font-size: 12px; color: #666;">Esses dados são necessários apenas no momento do cadastro inicial.</p>
+                        <p style="font-size: 12px; color: #666;">Depois de criar a conta, você poderá completar o restante do perfil quando quiser.</p>
                     </div>
+                    <div id="perfilDadosSection">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="perfilOcupacao">Ocupação (opcional):</label>
@@ -234,6 +242,7 @@
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar Perfil</button>
                         <button type="button" id="cancelarPerfilCompleto" class="btn btn-secondary" style="width: 80px; padding: 12px;">Fechar</button>
+                    </div>
                     </div>
                 </form>
             </div>
