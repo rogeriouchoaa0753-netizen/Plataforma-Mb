@@ -63,6 +63,7 @@ const cadastroEmailInput = document.getElementById('cadastroEmail');
 const cadastroCpfInput = document.getElementById('cadastroCpf');
 const cadastroSenhaInput = document.getElementById('cadastroSenha');
 const perfilDadosSection = document.getElementById('perfilDadosSection');
+const btnSalvarCadastro = document.getElementById('btnSalvarCadastro');
 let currentUserId = null;
 
 if (cadastroNomeInput) cadastroNomeInput.addEventListener('input', atualizarEmailInstitucional);
@@ -143,6 +144,9 @@ function mostrarFormularioLogin() {
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'none';
     }
+    if (btnSalvarCadastro) {
+        btnSalvarCadastro.textContent = 'Entrar';
+    }
     if (perfilCompletoFormElement) {
         delete perfilCompletoFormElement.dataset.mode;
     }
@@ -200,6 +204,9 @@ function ativarCadastroCompleto() {
     }
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'none';
+    }
+    if (btnSalvarCadastro) {
+        btnSalvarCadastro.textContent = 'Criar Conta';
     }
 
     const cpfInput = document.getElementById('cpf');
@@ -6514,6 +6521,9 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     }
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'block';
+    }
+    if (btnSalvarCadastro) {
+        btnSalvarCadastro.textContent = 'Salvar Perfil';
     }
     const relacionamentosSection = document.getElementById('relacionamentosSection');
     if (relacionamentosSection) relacionamentosSection.style.display = 'block';
