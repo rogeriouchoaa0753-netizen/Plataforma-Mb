@@ -64,6 +64,10 @@ const cadastroSobrenomeCompletoInput = document.getElementById('cadastroSobrenom
 const cadastroEmailInput = document.getElementById('cadastroEmail');
 const cadastroCpfInput = document.getElementById('cadastroCpf');
 const cadastroSenhaInput = document.getElementById('cadastroSenha');
+const cadastroDataNascimentoInput = document.getElementById('cadastroDataNascimento');
+const cadastroEstadoCivilInput = document.getElementById('cadastroEstadoCivil');
+const cadastroDataSacamentoInput = document.getElementById('cadastroDataSacamento');
+const cadastroDataSacamentoGroup = document.getElementById('cadastroDataSacamentoGroup');
 const perfilDadosSection = document.getElementById('perfilDadosSection');
 const btnCriarConta = document.getElementById('btnCriarConta');
 const btnSalvarPerfil = document.getElementById('btnSalvarPerfil');
@@ -92,6 +96,23 @@ if (cadastroCpfInput) {
 }
 if (cadastroSenhaInput) {
     cadastroSenhaInput.addEventListener('input', validarFormularioCadastro);
+}
+if (cadastroDataNascimentoInput) {
+    cadastroDataNascimentoInput.addEventListener('input', validarFormularioCadastro);
+}
+if (cadastroEstadoCivilInput) {
+    cadastroEstadoCivilInput.addEventListener('change', () => {
+        validarFormularioCadastro();
+        // Mostrar/ocultar campo de data de sacamento baseado no estado civil
+        if (cadastroEstadoCivilInput.value === 'casado' && cadastroDataSacamentoGroup) {
+            cadastroDataSacamentoGroup.style.display = 'block';
+        } else if (cadastroDataSacamentoGroup) {
+            cadastroDataSacamentoGroup.style.display = 'none';
+            if (cadastroDataSacamentoInput) {
+                cadastroDataSacamentoInput.value = '';
+            }
+        }
+    });
 }
 if (cadastroNomeCompletoInput) cadastroNomeCompletoInput.addEventListener('input', () => {
     cadastroNomeInput.value = cadastroNomeCompletoInput.value;
@@ -135,18 +156,16 @@ window.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const secaoSalva = localStorage.getItem('secaoAtual');
     
+    // IMPORTANTE: Esconder formulários de login IMEDIATAMENTE se houver token
+    // Isso evita que a tela de login apareça antes de restaurar a seção
+    if (token) {
+        esconderFormulariosLogin();
+        garantirSidebarVisivel();
+    }
+    
     // Ocultar logo e ícones sociais imediatamente se estiver na tela de registro
     if (secaoSalva === 'registro' && !token) {
-        const loginHero = document.getElementById('loginHero');
-        const loginSocial = document.getElementById('loginSocial');
-        if (loginHero) {
-            loginHero.style.display = 'none';
-            loginHero.style.visibility = 'hidden';
-        }
-        if (loginSocial) {
-            loginSocial.style.display = 'none';
-            loginSocial.style.visibility = 'hidden';
-        }
+        esconderElementosLogin();
     }
     
     if (token) {
@@ -187,6 +206,40 @@ function esconderFormulariosLogin() {
         loginForm.style.display = 'none';
         loginForm.style.visibility = 'hidden';
     }
+    // Esconder elementos da tela de login (logo, frase, ícones sociais) quando não estiver na tela de login
+    esconderElementosLogin();
+}
+
+// Mostrar elementos da tela de login (logo ADMB, frase, ícones sociais)
+function mostrarElementosLogin() {
+    const loginHero = document.getElementById('loginHero');
+    const loginSocial = document.getElementById('loginSocial');
+    
+    if (loginHero) {
+        loginHero.style.display = 'flex';
+        loginHero.style.visibility = 'visible';
+    }
+    
+    if (loginSocial) {
+        loginSocial.style.display = 'flex';
+        loginSocial.style.visibility = 'visible';
+    }
+}
+
+// Esconder elementos da tela de login (logo ADMB, frase, ícones sociais)
+function esconderElementosLogin() {
+    const loginHero = document.getElementById('loginHero');
+    const loginSocial = document.getElementById('loginSocial');
+    
+    if (loginHero) {
+        loginHero.style.display = 'none';
+        loginHero.style.visibility = 'hidden';
+    }
+    
+    if (loginSocial) {
+        loginSocial.style.display = 'none';
+        loginSocial.style.visibility = 'hidden';
+    }
 }
 
 // Garantir que o menu esteja sempre visível quando o usuário estiver logado
@@ -218,6 +271,16 @@ function mostrarFormularioLogin() {
     
     // Salvar estado
     localStorage.setItem('secaoAtual', 'login');
+    
+    // MOSTRAR elementos da tela de login (logo, frase, ícones sociais)
+    mostrarElementosLogin();
+    
+    // MOSTRAR formulário de login (garantir que esteja visível)
+    if (loginForm) {
+        loginForm.style.display = 'block';
+        loginForm.style.visibility = 'visible';
+        loginForm.classList.add('active');
+    }
     
     // OCULTAR ELEMENTOS DO CADASTRO
     const tituloCadastro = document.getElementById('tituloCadastro');
@@ -262,24 +325,8 @@ function mostrarFormularioLogin() {
         delete perfilCompletoFormElement.dataset.mode;
     }
     
-    // MOSTRAR ELEMENTOS DO LOGIN
-    const loginHero = document.getElementById('loginHero');
-    if (loginHero) {
-        loginHero.style.display = 'flex';
-        loginHero.style.visibility = 'visible';
-    }
-    
-    const loginSocial = document.getElementById('loginSocial');
-    if (loginSocial) {
-        loginSocial.style.display = 'flex';
-        loginSocial.style.visibility = 'visible';
-    }
-    
-    if (loginForm) {
-        loginForm.classList.add('active');
-        loginForm.style.display = 'block';
-        loginForm.style.visibility = 'visible';
-    }
+    // MOSTRAR elementos da tela de login (logo, frase, ícones sociais) - já chamado em mostrarFormularioLogin
+    // mostrarElementosLogin() já é chamado em mostrarFormularioLogin()
     
     // RESTAURAR FORM-CONTAINER
     // Aguardar para garantir que o formulário foi ocultado e o CSS :has() não interfira
@@ -536,14 +583,19 @@ function validarFormularioCadastro() {
     const sobrenome = cadastroSobrenomeInput?.value?.trim() || '';
     const cpf = cadastroCpfInput?.value?.replace(/\D/g, '') || '';
     const senha = cadastroSenhaInput?.value || '';
+    const dataNascimento = cadastroDataNascimentoInput?.value || '';
+    const estadoCivil = cadastroEstadoCivilInput?.value || '';
+    const dataSacamento = cadastroEstadoCivilInput?.value === 'casado' ? (cadastroDataSacamentoInput?.value || '') : '';
     
     // Validar se todos os campos obrigatórios estão preenchidos
     const nomeValido = nome.length >= 2;
     const sobrenomeValido = sobrenome.length >= 2;
+    const dataNascimentoValida = dataNascimento.length > 0;
+    const estadoCivilValido = estadoCivil.length > 0;
     const cpfValido = cpf.length === 11;
     const senhaValida = senha.length >= 6;
     
-    const formularioValido = nomeValido && sobrenomeValido && cpfValido && senhaValida;
+    const formularioValido = nomeValido && sobrenomeValido && cpfValido && senhaValida && dataNascimentoValida && estadoCivilValido;
     
     // Habilitar/desabilitar botão
     if (formularioValido) {
@@ -589,12 +641,38 @@ async function processarCadastroInicial() {
         return;
     }
 
+    // Validar data de nascimento
+    const dataNascimento = cadastroDataNascimentoInput?.value || '';
+    if (!dataNascimento) {
+        mostrarMensagem('Informe a data de nascimento.', 'error');
+        return;
+    }
+
+    // Validar estado civil
+    const estadoCivil = cadastroEstadoCivilInput?.value || '';
+    if (!estadoCivil) {
+        mostrarMensagem('Selecione o estado civil.', 'error');
+        return;
+    }
+
+    // Validar data de sacamento se casado
+    const dataSacamento = cadastroDataSacamentoInput?.value || '';
+    if (estadoCivil === 'casado' && !dataSacamento) {
+        mostrarMensagem('Informe a data de sacamento (casamento).', 'error');
+        return;
+    }
+
     const nomeCompleto = `${primeiroNome} ${sobrenome}`.replace(/\s+/g, ' ').trim();
     const payload = {
-        nome: nomeCompleto,
+        nome: primeiroNome, // Enviar apenas o primeiro nome
+        sobrenome: sobrenome, // Enviar sobrenome separado
+        nome_completo: nomeCompleto, // Manter nome completo para compatibilidade
         email: emailGerado,
         senha: senhaCadastro,
-        cpf: cpfCadastro
+        cpf: cpfCadastro,
+        data_nascimento: dataNascimento,
+        estado_civil: estadoCivil,
+        data_sacamento: estadoCivil === 'casado' ? dataSacamento : null
     };
 
     try {
@@ -762,6 +840,11 @@ async function restaurarSecaoSalva() {
             return; // Não está logado, deixar formulário de login visível
         }
         
+        // IMPORTANTE: Esconder formulários ANTES de fazer a requisição
+        // Isso evita que a tela de login apareça durante o carregamento
+        esconderFormulariosLogin();
+        garantirSidebarVisivel();
+        
         const response = await fetch(`${API_URL}/perfil`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -771,16 +854,16 @@ async function restaurarSecaoSalva() {
         if (!response.ok) {
             localStorage.removeItem('token');
             localStorage.removeItem('secaoAtual');
+            // Se o token for inválido, mostrar login
+            mostrarFormularioLogin();
             return;
         }
 
         const data = await response.json();
         currentUserId = data.usuario.id;
         
-        // Esconder formulários de login/registro imediatamente quando logado
+        // Garantir novamente que formulários estejam escondidos após carregar dados
         esconderFormulariosLogin();
-        
-        // Garantir que o sidebar esteja visível ao restaurar seção
         garantirSidebarVisivel();
         
         // Configurar itens do menu baseado no ID do usuário
@@ -1063,6 +1146,37 @@ if (editarPerfilBtn) {
     });
 }
 
+// Função para aplicar cantos levemente arredondados na janela de perfil
+function aplicarCantosQuadradosPerfil() {
+    const profileSection = document.getElementById('profileSection');
+    const formContainer = document.querySelector('.container.with-sidebar .form-container');
+    const perfilCompletoForm = document.getElementById('perfilCompletoForm');
+    
+    // Cantos levemente arredondados (10px)
+    const borderRadius = '10px';
+    
+    if (profileSection && profileSection.style.display !== 'none') {
+        // Aplicar cantos levemente arredondados na profileSection
+        profileSection.style.borderRadius = borderRadius;
+        profileSection.style.webkitBorderRadius = borderRadius;
+        profileSection.style.mozBorderRadius = borderRadius;
+    }
+    
+    if (formContainer) {
+        // Aplicar cantos levemente arredondados no form-container quando perfil está ativo
+        formContainer.style.borderRadius = borderRadius;
+        formContainer.style.webkitBorderRadius = borderRadius;
+        formContainer.style.mozBorderRadius = borderRadius;
+    }
+    
+    if (perfilCompletoForm && perfilCompletoForm.style.display !== 'none') {
+        // Aplicar cantos levemente arredondados no formulário de edição
+        perfilCompletoForm.style.borderRadius = borderRadius;
+        perfilCompletoForm.style.webkitBorderRadius = borderRadius;
+        perfilCompletoForm.style.mozBorderRadius = borderRadius;
+    }
+}
+
 // Carregar dados para edição - SEMPRE busca dados atualizados do cadastro oficial
 async function carregarDadosParaEdicao() {
     salvarSecaoAtual('perfil');
@@ -1092,6 +1206,10 @@ async function carregarDadosParaEdicao() {
             const data = await response.json();
             console.log('Dados para edição recebidos (oficial):', data);
             mostrarFormularioPerfilCompleto(data.usuario, data.relacionamentos || []);
+            // Aplicar cantos quadrados após mostrar o formulário
+            setTimeout(() => {
+                aplicarCantosQuadradosPerfil();
+            }, 100);
         } else {
             if (response.status === 401) {
                 fazerLogout();
@@ -1398,12 +1516,18 @@ function mostrarSecaoPerfil() {
     
     // Mostrar menu e seção de perfil
     if (sidebarMenu) sidebarMenu.style.display = 'block';
-    if (profileSection) profileSection.style.display = 'block';
+    if (profileSection) {
+        profileSection.style.display = 'block';
+        profileSection.classList.add('active');
+    }
     if (pageTitle) pageTitle.textContent = 'Meu Perfil';
     
     // Adicionar classe with-sidebar ao container
     const container = document.querySelector('.container');
     if (container) container.classList.add('with-sidebar');
+    
+    // APLICAR CANTOS ARREDONDADOS DIRETAMENTE VIA JAVASCRIPT
+    aplicarCantosQuadradosPerfil();
     
     // Atualizar menu ativo
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -3048,18 +3172,6 @@ function fazerLogout() {
     currentUserId = null;
     limparMensagem();
     
-    // Mostrar formulário de login
-    if (loginForm) {
-        loginForm.classList.add('active');
-        loginForm.style.display = 'block';
-        loginForm.style.visibility = 'visible';
-    }
-    if (registerForm) {
-        registerForm.classList.remove('active');
-        registerForm.style.display = 'none';
-        registerForm.style.visibility = 'hidden';
-    }
-    
     // Esconder todas as outras seções
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
@@ -3078,6 +3190,10 @@ function fazerLogout() {
 
     restaurarCredenciaisSalvas();
     document.body.classList.remove('body-with-sidebar');
+    
+    // MOSTRAR elementos da tela de login (logo, frase, ícones sociais) e formulário
+    mostrarElementosLogin();
+    mostrarFormularioLogin();
 }
 
 // ========== FUNÇÕES DO CALENDÁRIO E PROGRAMAÇÕES ==========
@@ -6839,6 +6955,11 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     abrirModalForm(perfilCompletoForm);
     pageTitle.textContent = 'Complete seu Perfil';
     const perfilFormTitulo = document.getElementById('perfilFormTitulo');
+    
+    // Aplicar cantos quadrados após mostrar o formulário
+    setTimeout(() => {
+        aplicarCantosQuadradosPerfil();
+    }, 100);
     if (perfilFormTitulo) {
         perfilFormTitulo.textContent = 'Preencha seus dados para continuar';
     }
@@ -6891,6 +7012,8 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
         cpfInput.readOnly = true;
         cpfInput.style.backgroundColor = '#f5f5f5';
         cpfInput.style.cursor = 'not-allowed';
+        cpfInput.style.color = '#ff4444';
+        cpfInput.style.fontWeight = 'bold';
     } else {
         cpfInput.readOnly = false;
         cpfInput.style.backgroundColor = 'white';
@@ -7089,7 +7212,7 @@ function exibirDadosPerfil(usuario, relacionamentos, ocupacaoNome) {
         <p><strong>Nome:</strong> ${usuario.nome}</p>
         <p><strong>Nome Completo:</strong> ${usuario.nome_completo || 'Não informado'}</p>
         <p><strong>Email:</strong> ${usuario.email}</p>
-        <p><strong>CPF:</strong> ${usuario.cpf || 'Não informado'}</p>
+        <p><strong>CPF:</strong> <span style="color: #ff4444; font-weight: bold;">${usuario.cpf || 'Não informado'}</span></p>
         <p><strong>Telefone:</strong> ${usuario.telefone || 'Não informado'}</p>
         <p><strong>Endereço:</strong> ${usuario.endereco || 'Não informado'}</p>
         <p><strong>CEP:</strong> ${usuario.cep || 'Não informado'}</p>

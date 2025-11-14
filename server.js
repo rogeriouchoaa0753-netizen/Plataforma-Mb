@@ -87,11 +87,16 @@ const authenticateToken = (req, res, next) => {
 // Rota de registro
 app.post('/api/registro', async (req, res) => {
   try {
-    const { nome, email, senha, cpf, ocupacao_id, igreja_id } = req.body;
+    const { nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, igreja_id, data_nascimento, estado_civil, data_sacamento } = req.body;
 
     // Validação
-    if (!nome || !email || !senha || !cpf) {
-      return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
+    if (!nome || !email || !senha || !cpf || !data_nascimento || !estado_civil) {
+      return res.status(400).json({ erro: 'Todos os campos obrigatórios devem ser preenchidos' });
+    }
+
+    // Validar data de sacamento se casado
+    if (estado_civil === 'casado' && !data_sacamento) {
+      return res.status(400).json({ erro: 'Data de sacamento é obrigatória para casados' });
     }
     
 
@@ -153,10 +158,11 @@ app.post('/api/registro', async (req, res) => {
             }
 
             function criarUsuarioComIgreja() {
-              // Inserir usuário com CPF e ocupação
+              // Inserir usuário com CPF e ocupação, incluindo novos campos
+              const nomeCompleto = nome_completo || (sobrenome ? `${nome} ${sobrenome}` : nome);
               db.run(
-                'INSERT INTO usuarios (nome, email, senha, cpf, ocupacao_id) VALUES (?, ?, ?, ?, ?)',
-                [nome, email, senhaHash, cpf, ocupacao_id],
+                'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, data_nascimento, estado_civil, data_sacamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, ocupacao_id, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null],
                 function(err) {
                   if (err) {
                     if (err.message && err.message.includes('UNIQUE constraint failed')) {
@@ -206,10 +212,11 @@ app.post('/api/registro', async (req, res) => {
             }
           });
         } else {
-          // Inserir usuário com CPF (sem ocupação)
+          // Inserir usuário com CPF (sem ocupação), incluindo novos campos
+          const nomeCompleto = nome_completo || (sobrenome ? `${nome} ${sobrenome}` : nome);
           db.run(
-            'INSERT INTO usuarios (nome, email, senha, cpf) VALUES (?, ?, ?, ?)',
-            [nome, email, senhaHash, cpf],
+            'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, data_nascimento, estado_civil, data_sacamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null],
             function(err) {
               if (err) {
                 // Verificar se erro é por CPF duplicado

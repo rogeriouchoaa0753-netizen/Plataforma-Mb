@@ -250,18 +250,47 @@ body > * {
 /* Form Container */
 .form-container {
     background: linear-gradient(180deg, rgba(17, 27, 47, 0.95) 0%, rgba(12, 19, 34, 0.98) 100%);
-    border-radius: 36px;
+    border-radius: 36px; /* Desktop: 36px, Mobile: 42px (aplicado na media query) */
     padding: var(--spacing-md);
     box-shadow: var(--shadow-card);
     width: 100%;
     max-width: calc(var(--app-width) - 40px);
     border: 1px solid rgba(79, 156, 255, 0.15);
     position: relative;
+    backdrop-filter: blur(14px);
+}
+
+/* Cantos levemente arredondados quando a janela de perfil está ativa - será sobrescrito pelo JavaScript */
+.container.with-sidebar .form-container:has(#profileSection.active),
+.container.with-sidebar .form-container:has(#profileSection[style*="display: block"]),
+.container.with-sidebar .form-container:has(#profileSection.active #perfilCompletoForm[style*="display: block"]),
+.container.with-sidebar .form-container:has(#profileSection.active #perfilCompletoForm:not([style*="display: none"])) {
+    border-radius: 10px;
+}
+
+/* Regra adicional: quando profileSection está ativa, o form-container pai também deve ter cantos levemente arredondados */
+body:has(#profileSection.active) .container.with-sidebar .form-container,
+body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form-container {
+    border-radius: 10px;
+}
+
+/* Quando não logado (tela de login), form-container pode ter overflow hidden */
+.container:not(.with-sidebar) .form-container {
     overflow: hidden;
     overflow-y: hidden;
     overflow-x: hidden;
-    backdrop-filter: blur(14px);
 }
+
+/* Quando logado, form-container NÃO deve ter overflow - apenas as seções internas terão rolagem */
+.container.with-sidebar .form-container {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    /* Aplicar cantos arredondados como padrão (36px desktop, 42px mobile) */
+    border-radius: 36px;
+}
+
+/* Regras adicionais para garantir cantos quadrados - já cobertas pela regra acima */
 
 /* Painel de login centralizado */
 .container:not(.with-sidebar) .form-container {
@@ -302,7 +331,7 @@ body > * {
     max-height: none;
 }
 
-/* Quando logado, remove o estilo fixo */
+/* Quando logado, remove o estilo fixo e garante que não tenha rolagem */
 .container.with-sidebar .form-container {
     position: relative;
     top: auto;
@@ -310,10 +339,12 @@ body > * {
     transform: none;
     width: 100%;
     max-width: 100%;
-    overflow: visible;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
 }
 
-/* Barra de rolagem para o formulário de perfil quando estiver aberto para edição */
+/* Barra de rolagem para o formulário de perfil quando estiver aberto para edição - Padrão Azul */
 .container.with-sidebar #perfilCompletoForm[style*="display: block"],
 .container.with-sidebar #perfilCompletoForm:not([style*="display: none"]) {
     position: relative;
@@ -323,38 +354,16 @@ body > * {
     padding-right: 10px;
     margin-right: -10px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+    scrollbar-color: rgba(79, 156, 255, 0.6) rgba(17, 27, 47, 0.3);
+    /* Cantos completamente quadrados quando dentro da janela de perfil */
+    border-radius: 0 !important;
 }
 
-/* Garantir que o form-container também permita rolagem quando o formulário de perfil estiver aberto */
+/* Remover rolagem do form-container quando o formulário de perfil estiver aberto - evita duplicação */
 .container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"]),
 .container.with-sidebar .form-container:has(#perfilCompletoForm:not([style*="display: none"])) {
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* Estilizar scrollbar do formulário de perfil */
-.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar,
-.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar {
-    width: 8px;
-}
-
-.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-track,
-.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-track {
-    background: rgba(17, 27, 47, 0.3);
-    border-radius: 10px;
-}
-
-.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb,
-.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb {
-    background: rgba(79, 156, 255, 0.4);
-    border-radius: 10px;
-}
-
-.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb:hover,
-.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb:hover {
-    background: rgba(79, 156, 255, 0.6);
+    overflow: visible;
+    max-height: none;
 }
 
 .form-container::before {
@@ -405,6 +414,28 @@ body > * {
         width: calc(100vw - 24px);
         max-width: calc(100vw - 24px);
         max-height: 85vh;
+        border-radius: 42px;
+    }
+    
+    /* Quando o formulário de edição de perfil está visível dentro da janela de perfil (mobile), aplicar cantos quadrados */
+    .container.with-sidebar:has(#profileSection.active) #perfilCompletoForm[style*="display: block"],
+    .container.with-sidebar:has(#profileSection.active) #perfilCompletoForm:not([style*="display: none"]) {
+        border-radius: 0 !important;
+    }
+    
+    .container.with-sidebar:has(#profileSection.active):has(#perfilCompletoForm[style*="display: block"]) .form-container,
+    .container.with-sidebar:has(#profileSection.active):has(#perfilCompletoForm:not([style*="display: none"])) .form-container {
+        border-radius: 0 !important;
+    }
+    
+    /* Aplicar cantos completamente quadrados mobile apenas para janela de perfil */
+    .container.with-sidebar #profileSection.active {
+        border-radius: 0 !important;
+    }
+    
+    /* Form-container também deve ter cantos completamente quadrados quando perfil está ativo */
+    .container.with-sidebar:has(#profileSection.active) .form-container {
+        border-radius: 0 !important;
     }
 }
 
@@ -450,9 +481,8 @@ h4 {
     animation: fadeIn 0.3s ease;
 }
 
-/* Barras de rolagem nas seções principais */
+/* Barras de rolagem nas seções principais - Padrão Azul */
 #inicioSection.active,
-#profileSection.active,
 #adminSection.active,
 #configSection.active {
     position: relative;
@@ -462,58 +492,155 @@ h4 {
     padding-right: 10px;
     margin-right: -10px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+    scrollbar-color: rgba(79, 156, 255, 0.6) rgba(17, 27, 47, 0.3);
 }
 
-/* Barra de rolagem específica para a área de conteúdo do perfil */
-#profileSection.active {
+/* Janela de Perfil - Estilo específico com cantos levemente arredondados */
+#profileSection.active,
+#profileSection[style*="display: block"] {
     position: relative;
-}
-
-#profileSection.active #userInfo {
-    position: relative;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 120px);
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 10px;
+    padding: var(--spacing-md);
+    padding-right: calc(var(--spacing-md) + 10px);
     margin-right: -10px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+    scrollbar-color: rgba(79, 156, 255, 0.6) rgba(17, 27, 47, 0.3);
+    /* Cantos levemente arredondados (10px) - será sobrescrito pelo JavaScript */
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(17, 27, 47, 0.95) 0%, rgba(12, 19, 34, 0.98) 100%) !important;
+    box-shadow: var(--shadow-card) !important;
+    border: 1px solid rgba(79, 156, 255, 0.15) !important;
+    backdrop-filter: blur(14px) !important;
+    margin: 0 !important;
 }
 
-/* Estilizar scrollbar para as seções */
+/* Remover estilos conflitantes do form-container quando a janela de perfil está ativa */
+.container.with-sidebar:has(#profileSection.active) .form-container {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    /* Border-radius será definido pela regra acima (6px desktop, 8px mobile) */
+}
+
+/* Remover background e border duplicados dos elementos internos da janela de perfil */
+#profileSection.active #userInfo {
+    overflow: visible;
+    max-height: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+/* ============================================
+   SCROLLBAR AZUL PADRÃO COM SETINHAS
+   ============================================ */
+
+/* Estilizar scrollbar para as seções principais */
 #inicioSection.active::-webkit-scrollbar,
 #profileSection.active::-webkit-scrollbar,
 #adminSection.active::-webkit-scrollbar,
 #configSection.active::-webkit-scrollbar,
-#profileSection.active #userInfo::-webkit-scrollbar {
-    width: 8px;
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar {
+    width: 12px;
 }
 
+/* Track (trilha) da scrollbar */
 #inicioSection.active::-webkit-scrollbar-track,
 #profileSection.active::-webkit-scrollbar-track,
 #adminSection.active::-webkit-scrollbar-track,
 #configSection.active::-webkit-scrollbar-track,
-#profileSection.active #userInfo::-webkit-scrollbar-track {
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-track,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-track,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-track {
     background: rgba(17, 27, 47, 0.3);
     border-radius: 10px;
+    border: 1px solid rgba(79, 156, 255, 0.1);
 }
 
+/* Thumb (polegar) da scrollbar */
 #inicioSection.active::-webkit-scrollbar-thumb,
 #profileSection.active::-webkit-scrollbar-thumb,
 #adminSection.active::-webkit-scrollbar-thumb,
 #configSection.active::-webkit-scrollbar-thumb,
-#profileSection.active #userInfo::-webkit-scrollbar-thumb {
-    background: rgba(79, 156, 255, 0.4);
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(79, 156, 255, 0.6) 0%, rgba(79, 156, 255, 0.4) 100%);
     border-radius: 10px;
+    border: 1px solid rgba(79, 156, 255, 0.3);
+    box-shadow: inset 0 0 3px rgba(79, 156, 255, 0.2);
 }
 
+/* Hover no thumb */
 #inicioSection.active::-webkit-scrollbar-thumb:hover,
 #profileSection.active::-webkit-scrollbar-thumb:hover,
 #adminSection.active::-webkit-scrollbar-thumb:hover,
 #configSection.active::-webkit-scrollbar-thumb:hover,
-#profileSection.active #userInfo::-webkit-scrollbar-thumb:hover {
-    background: rgba(79, 156, 255, 0.6);
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb:hover,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb:hover,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(79, 156, 255, 0.8) 0%, rgba(79, 156, 255, 0.6) 100%);
+    border-color: rgba(79, 156, 255, 0.5);
+}
+
+/* Botões de seta (setinhas) acima e abaixo */
+#inicioSection.active::-webkit-scrollbar-button,
+#profileSection.active::-webkit-scrollbar-button,
+#adminSection.active::-webkit-scrollbar-button,
+#configSection.active::-webkit-scrollbar-button,
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-button,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-button,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-button {
+    display: block;
+    height: 12px;
+    background: rgba(79, 156, 255, 0.2);
+    border: 1px solid rgba(79, 156, 255, 0.3);
+    border-radius: 10px;
+}
+
+/* Setinha para cima */
+#inicioSection.active::-webkit-scrollbar-button:single-button:vertical:decrement,
+#profileSection.active::-webkit-scrollbar-button:single-button:vertical:decrement,
+#adminSection.active::-webkit-scrollbar-button:single-button:vertical:decrement,
+#configSection.active::-webkit-scrollbar-button:single-button:vertical:decrement,
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-button:single-button:vertical:decrement,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-button:single-button:vertical:decrement,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-button:single-button:vertical:decrement {
+    border-width: 0 4px 4px 4px;
+    border-color: transparent transparent rgba(79, 156, 255, 0.8) transparent;
+    background: rgba(79, 156, 255, 0.2);
+}
+
+/* Setinha para baixo */
+#inicioSection.active::-webkit-scrollbar-button:single-button:vertical:increment,
+#profileSection.active::-webkit-scrollbar-button:single-button:vertical:increment,
+#adminSection.active::-webkit-scrollbar-button:single-button:vertical:increment,
+#configSection.active::-webkit-scrollbar-button:single-button:vertical:increment,
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-button:single-button:vertical:increment,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-button:single-button:vertical:increment,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-button:single-button:vertical:increment {
+    border-width: 4px 4px 0 4px;
+    border-color: rgba(79, 156, 255, 0.8) transparent transparent transparent;
+    background: rgba(79, 156, 255, 0.2);
+}
+
+/* Hover nas setinhas */
+#inicioSection.active::-webkit-scrollbar-button:hover,
+#profileSection.active::-webkit-scrollbar-button:hover,
+#adminSection.active::-webkit-scrollbar-button:hover,
+#configSection.active::-webkit-scrollbar-button:hover,
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-button:hover,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-button:hover,
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar-button:hover {
+    background: rgba(79, 156, 255, 0.3);
 }
 
 .form-container #loginForm {
@@ -1025,6 +1152,13 @@ textarea::placeholder {
     color: rgba(226, 232, 240, 0.58);
 }
 
+/* CPF em vermelho e negrito */
+#cpf,
+#cadastroCpf {
+    color: #ff4444 !important;
+    font-weight: bold !important;
+}
+
 /* Corrige autofill do navegador para manter o tema escuro */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -1234,20 +1368,23 @@ textarea {
     text-decoration: none;
     color: var(--text-light);
     flex: 1;
-    padding: 8px 12px;
-    transition: all 0.2s ease;
+    padding: 8px 4px;
+    transition: all 0.3s ease;
     position: relative;
     min-width: 0;
     border-radius: var(--radius-md);
     -webkit-tap-highlight-color: transparent;
+    gap: 4px;
 }
 
 .nav-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
-    transition: all 0.2s ease;
+    width: 24px;
+    height: 24px;
+    margin-bottom: 0;
+    transition: all 0.3s ease;
     display: block;
-    line-height: 1;
+    flex-shrink: 0;
+    color: inherit;
 }
 
 .nav-label {
@@ -1259,24 +1396,41 @@ textarea {
     text-overflow: ellipsis;
     max-width: 100%;
     line-height: 1.2;
+    margin-top: 2px;
+    color: inherit;
 }
 
 .nav-item.active {
-    color: var(--text-primary);
+    color: var(--accent-orange);
 }
 
 .nav-item.active .nav-icon {
-    transform: scale(1.1);
-    filter: brightness(1.2);
+    transform: scale(1.15);
+    filter: brightness(1.3);
+    color: var(--accent-orange);
+}
+
+.nav-item.active .nav-label {
+    color: var(--accent-orange);
+    font-weight: 600;
 }
 
 .nav-item:not(.active) {
-    opacity: 0.7;
+    opacity: 0.65;
+}
+
+.nav-item:not(.active):hover {
+    opacity: 0.9;
+    color: var(--text-secondary);
 }
 
 .nav-item:active {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 138, 60, 0.1);
     transform: scale(0.95);
+}
+
+.nav-item.active:active {
+    background: rgba(255, 138, 60, 0.15);
 }
 
 /* Botão central destacado (se necessário) */
@@ -1304,7 +1458,8 @@ textarea {
     }
     
     .nav-item {
-        padding: 10px 16px;
+        padding: 10px 8px;
+        gap: 5px;
     }
     
     .nav-label {
@@ -1312,7 +1467,8 @@ textarea {
     }
     
     .nav-icon {
-        font-size: 26px;
+        width: 26px;
+        height: 26px;
     }
 }
 
@@ -1414,6 +1570,8 @@ textarea {
 .tab-content.active {
     display: block;
 }
+
+/* Remover regras gerais de border-radius - focar apenas na janela de perfil */
 
 /* Item List */
 .item-list {
@@ -1749,6 +1907,11 @@ textarea {
         transform: scale(1);
     }
 }
+
+/* ============================================
+   REGRA FINAL - CANTOS LEVEMENTE ARREDONDADOS JANELA PERFIL
+   Será sobrescrito pelo JavaScript que aplica 6px
+   ============================================ */
 
 /* ============================================
    UTILITÁRIOS
