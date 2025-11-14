@@ -3,8 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Sistema de Login</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Ocultar logo e ícones sociais imediatamente se estiver na tela de registro (antes do DOM carregar)
+        // Ocultar botão Voltar se NÃO estiver na tela de registro (antes do DOM carregar)
+        (function() {
+            try {
+                const secaoSalva = localStorage.getItem('secaoAtual');
+                const token = localStorage.getItem('token');
+                if (secaoSalva === 'registro' && !token) {
+                    document.write('<style>#loginHero, #loginSocial { display: none !important; }</style>');
+                } else {
+                    // Se não estiver na tela de registro, ocultar o botão Voltar imediatamente
+                    document.write('<style>#btnVoltarRegistro { display: none !important; visibility: hidden !important; opacity: 0 !important; }</style>');
+                }
+            } catch(e) {}
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -32,7 +51,7 @@
             </a>
         </nav>
 
-        <div class="login-hero">
+        <div class="login-hero" id="loginHero">
             <img src="images/logo-youtube-missao-brasil.png" alt="Logo Missão Brasil" class="login-hero-logo">
             <div class="login-hero-text">
                 <span class="login-hero-title">ADMB</span>
@@ -40,7 +59,7 @@
             </div>
         </div>
 
-        <div class="login-social">
+        <div class="login-social" id="loginSocial">
             <a href="https://www.instagram.com/ad.missaobrasil?igsh=MXF2YnNwNmQyMXdhbg==" target="_blank" rel="noopener" class="social-icon instagram" aria-label="Instagram ADMB">
                 <img src="images/instagram.png" alt="Instagram">
             </a>
@@ -49,6 +68,15 @@
             </a>
         </div>
 
+        <!-- Botão Voltar (fora da janela, acima do título) -->
+        <button type="button" id="btnVoltarRegistro" style="display: none; position: fixed; top: 10px; left: 10px; background: #172341; color: white; border: 1px solid rgba(79, 156, 255, 0.3); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; align-items: center; justify-content: center; gap: 4px; z-index: 101; transition: all 0.2s; box-shadow: 0 2px 6px rgba(23, 35, 65, 0.4);">
+            <span style="font-size: 18px; line-height: 1;">←</span>
+            <span style="color: var(--accent-orange);">Voltar</span>
+        </button>
+        
+        <!-- Título do Cadastro (fora da janela) -->
+        <h1 id="tituloCadastro" style="display: none;">Crie a sua Conta MB</h1>
+        
         <div class="form-container">
             <h1 id="pageTitle" style="display: none;">Sistema de Login</h1>
             
@@ -85,13 +113,12 @@
 
             <!-- Formulário de Perfil Completo -->
             <div id="perfilCompletoForm" class="form-section" style="display: none;">
-                <h2>Complete seu Perfil</h2>
-                <p style="text-align: center; color: #666; margin-bottom: 20px;">
-                    Preencha seus dados para continuar
+                <p id="perfilFormTitulo" style="text-align: center; color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+                    Preencha seus dados para criar sua conta
                 </p>
-                <form id="perfilCompletoFormElement" style="max-height: 70vh; overflow-y: auto; padding-right: 10px;">
-                    <div id="cadastroCredenciaisSection" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h3 style="color: #667eea; margin-bottom: 15px;">Dados de Acesso</h3>
+                <form id="perfilCompletoFormElement" style="padding-right: 10px;">
+                    <div id="cadastroCredenciaisSection" style="display: none; padding: 0;">
+                        <h3 style="color: var(--accent-blue); margin-bottom: 15px;">Dados de Acesso</h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 10px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label for="cadastroNome">Nome *</label>
@@ -104,8 +131,8 @@
                         </div>
                         <div class="form-group">
                             <label for="cadastroEmail">Email institucional *</label>
-                            <input type="text" id="cadastroEmail" placeholder="gerado automaticamente" autocomplete="off" readonly style="background-color: #eee; cursor: not-allowed;">
-                            <small style="color: #666; font-size: 12px;">O email é gerado automaticamente no formato nome+sobrenome@admb.com</small>
+                            <input type="text" id="cadastroEmail" placeholder="gerado automaticamente" autocomplete="off" readonly style="background-color: rgba(17, 27, 47, 0.6); cursor: not-allowed; opacity: 0.7;">
+                            <small style="color: var(--text-muted); font-size: 12px;">O email é gerado automaticamente no formato nome+sobrenome@admb.com</small>
                         </div>
                         <div class="form-group">
                             <label for="cadastroCpf">CPF *</label>
@@ -115,9 +142,26 @@
                             <label for="cadastroSenha">Senha *</label>
                             <input type="password" id="cadastroSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6">
                         </div>
-                        <p style="font-size: 12px; color: #666;">Depois de criar a conta, você poderá completar o restante do perfil quando quiser.</p>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Depois de criar a conta, você poderá completar o restante do perfil quando quiser.</p>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="submit" id="btnCriarConta" class="btn btn-primary" style="flex: 1; opacity: 0.5; cursor: not-allowed;" disabled>Criar Conta</button>
+                        </div>
+                        
                     </div>
                     <div id="perfilDadosSection" style="display: none;">
+                    <div id="cadastroNomeSection" style="display: none; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="cadastroNomeCompleto">Nome *</label>
+                                <input type="text" id="cadastroNomeCompleto" placeholder="Digite o seu nome" autocomplete="name">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="cadastroSobrenomeCompleto">Sobrenome *</label>
+                                <input type="text" id="cadastroSobrenomeCompleto" placeholder="Digite seu sobrenome" autocomplete="family-name">
+                            </div>
+                        </div>
+                    </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="perfilOcupacao">Ocupação (opcional):</label>
@@ -240,7 +284,7 @@
                     </div>
                     
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button type="submit" id="btnSalvarCadastro" class="btn btn-primary" style="flex: 1;">Salvar Perfil</button>
+                        <button type="submit" id="btnSalvarPerfil" class="btn btn-primary" style="flex: 1;">Salvar Perfil</button>
                         <button type="button" id="cancelarPerfilCompleto" class="btn btn-secondary" style="width: 80px; padding: 12px;">Fechar</button>
                     </div>
                     </div>

@@ -4,39 +4,40 @@
 
 /* Variáveis CSS - Dark Urban Theme */
 :root {
-    /* Cores do Tema */
-    --bg-primary: #0F141C;
-    --bg-secondary: #161F2C;
-    --bg-tertiary: #1D2736;
-    --bg-card: #1A2433;
-    --bg-card-hover: #222F42;
-    --bg-input: #131B26;
+    /* Paleta principal - tons azul petróleo com acentos âmbar */
+    --bg-primary: #0B1120;
+    --bg-secondary: #111B2F;
+    --bg-tertiary: #172341;
+    --bg-card: rgba(17, 27, 47, 0.92);
+    --bg-card-hover: rgba(23, 35, 63, 0.95);
+    --bg-input: rgba(22, 33, 55, 0.9);
     
     /* Cores de Texto */
-    --text-primary: #F5F6FA;
-    --text-secondary: #D1D5DB;
-    --text-light: #9CA3AF;
-    --text-muted: #6B7280;
+    --text-primary: #F8FAFC;
+    --text-secondary: #E2E8F0;
+    --text-light: #AAB4C7;
+    --text-muted: #73809A;
     
     /* Cores de Acento */
     --accent-pink: #FF6B9D;
     --accent-orange: #FF8A3C;
-    --accent-yellow: #F7B046;
-    --accent-green: #3FB588;
-    --accent-blue: #4C6EF5;
-    --accent-purple: #8B5CF6;
+    --accent-yellow: #F4B860;
+    --accent-green: #51D3A0;
+    --accent-blue: #4F9CFF;
+    --accent-purple: #8E7CFF;
     
-    /* Cores Primárias */
-    --primary: #FF8A3C;
-    --primary-dark: #D66D1F;
-    --secondary: #2D3A4D;
+    /* Cores Primárias / Botões */
+    --primary: linear-gradient(135deg, #4F9CFF 0%, #3662FF 100%);
+    --primary-solid: #4F9CFF;
+    --primary-dark: #2551C5;
+    --secondary: rgba(79, 156, 255, 0.18);
     
     /* Sombras Dark Theme */
-    --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.04), inset 0 -1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);
-    --shadow-card-hover: 0 22px 48px rgba(0, 0, 0, 0.5), 0 8px 18px rgba(0, 0, 0, 0.4);
-    --shadow-button: 0 12px 26px rgba(255, 138, 60, 0.28);
-    --shadow-button-hover: 0 16px 36px rgba(255, 138, 60, 0.38);
+    --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.03), inset 0 -1px 2px rgba(3, 7, 18, 0.45);
+    --shadow-card: 0 22px 48px rgba(3, 7, 18, 0.55), 0 6px 18px rgba(3, 7, 18, 0.4);
+    --shadow-card-hover: 0 26px 56px rgba(3, 7, 18, 0.62), 0 10px 24px rgba(3, 7, 18, 0.45);
+    --shadow-button: 0 14px 32px rgba(79, 156, 255, 0.32);
+    --shadow-button-hover: 0 18px 40px rgba(79, 156, 255, 0.42);
     
     /* Bordas */
     --radius-sm: 4px;
@@ -67,12 +68,14 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     background:
-        linear-gradient(to top, rgba(6, 10, 16, 0.68) 0%, rgba(6, 10, 16, 0.48) 22%, rgba(6, 10, 16, 0.26) 45%, rgba(6, 10, 16, 0.12) 68%, rgba(6, 10, 16, 0.03) 82%, rgba(6, 10, 16, 0) 100%),
-        linear-gradient(145deg, rgba(16, 23, 35, 0.5) 0%, rgba(15, 20, 28, 0.48) 35%, rgba(11, 18, 26, 0.52) 100%),
+        linear-gradient(180deg, rgba(11, 17, 32, 0.45) 0%, rgba(12, 19, 36, 0.35) 35%, rgba(12, 19, 36, 0.25) 55%, rgba(12, 19, 36, 0.10) 80%, rgba(12, 19, 36, 0) 100%),
+        radial-gradient(circle at 20% 20%, rgba(79, 156, 255, 0.15) 0%, transparent 55%),
+        radial-gradient(circle at 80% 10%, rgba(255, 138, 60, 0.12) 0%, transparent 60%),
         url('images/fundoarte.png');
-    background-size: 105% 100%, 105% 100%, cover;
-    background-position: center bottom, center top, center;
-    background-repeat: no-repeat;
+    background-size: 100% 100%, 140% 140%, 140% 140%, cover;
+    background-position: center, left top, right top, center 20%;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    background-attachment: scroll;
     color: var(--text-primary);
     min-height: 100vh;
     padding: 0;
@@ -95,6 +98,13 @@ body.body-with-sidebar {
 @media (max-width: 430px) {
     :root {
         --app-width: 390px; /* iPhone 12/13/14/15 */
+    }
+    
+    /* Ajustar background para mobile */
+    body {
+        background-attachment: fixed;
+        background-size: 100% 100%, 120% 120%, 120% 120%, cover;
+        background-position: center, left top, right top, center 20%;
     }
 }
 
@@ -126,8 +136,8 @@ body::before {
     position: fixed;
     inset: 0;
     background:
-        linear-gradient(to top, rgba(6, 10, 16, 0.96) 0%, rgba(6, 10, 16, 0.86) 18%, rgba(6, 10, 16, 0.64) 36%, rgba(6, 10, 16, 0.36) 52%, rgba(6, 10, 16, 0.14) 64%, rgba(6, 10, 16, 0.04) 74%, rgba(6, 10, 16, 0) 86%),
-        radial-gradient(circle at 60% 65%, rgba(6, 10, 16, 0.45) 0%, rgba(6, 10, 16, 0.28) 32%, transparent 70%),
+        linear-gradient(to top, rgba(6, 10, 16, 0.56) 0%, rgba(6, 10, 16, 0.46) 18%, rgba(6, 10, 16, 0.24) 36%, rgba(6, 10, 16, 0.16) 52%, rgba(6, 10, 16, 0) 64%, rgba(6, 10, 16, 0) 74%, rgba(6, 10, 16, 0) 86%),
+        radial-gradient(circle at 60% 65%, rgba(6, 10, 16, 0.15) 0%, rgba(6, 10, 16, 0.08) 32%, transparent 70%),
         radial-gradient(circle at 20% 20%, rgba(255, 138, 60, 0.1) 0%, transparent 55%),
         radial-gradient(circle at 80% 10%, rgba(76, 110, 245, 0.06) 0%, transparent 50%),
         radial-gradient(circle at 50% 80%, rgba(255, 138, 60, 0.05) 0%, transparent 60%);
@@ -139,7 +149,7 @@ body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background: linear-gradient(to top, rgba(11, 18, 26, 0.92) 0%, rgba(11, 18, 26, 0.82) 20%, rgba(11, 18, 26, 0.58) 40%, rgba(11, 18, 26, 0.28) 55%, rgba(11, 18, 26, 0.08) 70%, rgba(11, 18, 26, 0) 85%);
+    background: linear-gradient(to top, rgba(11, 18, 26, 0.52) 0%, rgba(11, 18, 26, 0.42) 20%, rgba(11, 18, 26, 0.28) 40%, rgba(11, 18, 26, 0.08) 55%, rgba(11, 18, 26, 0) 70%, rgba(11, 18, 26, 0) 85%);
     pointer-events: none;
     z-index: 0;
 }
@@ -157,6 +167,54 @@ body > * {
     position: relative;
 }
 
+/* Título do cadastro (fora da janela) */
+#tituloCadastro {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: 100%;
+    max-width: var(--app-width);
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+
+/* Ocultar logo e ícones sociais quando estiver na tela de registro */
+.container:not(.with-sidebar):has(#perfilCompletoForm[style*="display: block"]) .login-hero,
+.container:not(.with-sidebar):has(#perfilCompletoForm[style*="display: block"]) .login-social {
+    display: none !important;
+}
+
+/* Estilo do botão Voltar */
+/* Ocultar botão Voltar por padrão - só mostrar quando estiver na tela de registro */
+#btnVoltarRegistro {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Mostrar botão Voltar apenas quando o formulário de cadastro estiver ativo */
+.container:not(.with-sidebar):has(#perfilCompletoForm[style*="display: block"]) #btnVoltarRegistro {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #172341 !important;
+    border: 1px solid rgba(79, 156, 255, 0.3) !important;
+}
+
+#btnVoltarRegistro:hover {
+    background: #1a2a4a !important;
+    border-color: rgba(79, 156, 255, 0.5) !important;
+    transform: translateX(-2px);
+    box-shadow: 0 3px 10px rgba(23, 35, 65, 0.5) !important;
+}
+
 /* Container apenas para login - centralizado e fixo */
 .container:not(.with-sidebar) {
     position: fixed;
@@ -164,11 +222,8 @@ body > * {
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    max-width: calc(var(--app-width) + 40px);
+    max-width: var(--app-width);
     height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: var(--spacing-md);
     z-index: 1;
     overflow: hidden;
@@ -194,27 +249,28 @@ body > * {
 
 /* Form Container */
 .form-container {
-    background: linear-gradient(160deg, rgba(26, 36, 51, 0.95) 0%, rgba(14, 21, 31, 0.98) 100%);
+    background: linear-gradient(180deg, rgba(17, 27, 47, 0.95) 0%, rgba(12, 19, 34, 0.98) 100%);
     border-radius: 36px;
     padding: var(--spacing-md);
     box-shadow: var(--shadow-card);
     width: 100%;
     max-width: calc(var(--app-width) - 40px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 156, 255, 0.15);
     position: relative;
     overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: hidden;
     backdrop-filter: blur(14px);
 }
 
-/* Painel de login fixo e centralizado - não redimensiona */
+/* Painel de login centralizado */
 .container:not(.with-sidebar) .form-container {
-    position: fixed;
+    position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: calc(var(--app-width) + 60px);
-    max-width: calc(var(--app-width) + 60px);
-    margin: 0;
+    top: 350px;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: calc(var(--app-width) - 40px);
     z-index: 10;
     min-height: 280px;
     display: flex;
@@ -224,6 +280,26 @@ body > * {
     padding-bottom: var(--spacing-xs);
     padding-left: calc(var(--spacing-md) - 10px);
     padding-right: calc(var(--spacing-md) - 10px);
+}
+
+/* Quando mostrar formulário de registro, ajustar proporção */
+.container:not(.with-sidebar) .form-container:has(#perfilCompletoForm[style*="display: block"]) {
+    width: calc(var(--app-width) + 20px);
+    max-width: calc(var(--app-width) + 20px);
+    padding: var(--spacing-md);
+    max-height: 75vh;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    top: 48%;
+    transform: translate(-50%, -50%);
+}
+
+/* Remover overflow do form interno quando estiver no container com scroll */
+.container:not(.with-sidebar) .form-container:has(#perfilCompletoForm[style*="display: block"]) #perfilCompletoFormElement {
+    overflow: visible;
+    max-height: none;
 }
 
 /* Quando logado, remove o estilo fixo */
@@ -239,45 +315,51 @@ body > * {
 .form-container::before {
     content: '';
     position: absolute;
-    top: -40%;
-    left: -30%;
-    width: 160%;
-    height: 70%;
-    background: radial-gradient(circle at top right, rgba(255, 138, 60, 0.35), transparent 65%);
-    filter: blur(60px);
-    opacity: 0.8;
+    top: -45%;
+    left: -35%;
+    width: 170%;
+    height: 72%;
+    background: radial-gradient(circle at top right, rgba(79, 156, 255, 0.35), transparent 65%);
+    filter: blur(70px);
+    opacity: 0.75;
     pointer-events: none;
 }
 
 .form-container::after {
     content: '';
     position: absolute;
-    right: -35%;
-    bottom: -45%;
-    width: 150%;
-    height: 70%;
-    background: radial-gradient(circle at bottom left, rgba(76, 110, 245, 0.28), transparent 70%);
-    filter: blur(80px);
-    opacity: 0.6;
+    right: -38%;
+    bottom: -48%;
+    width: 160%;
+    height: 74%;
+    background: radial-gradient(circle at bottom left, rgba(255, 138, 60, 0.32), transparent 70%);
+    filter: blur(90px);
+    opacity: 0.55;
     pointer-events: none;
 }
 
 /* Responsividade - mantém tamanho fixo em telas pequenas */
 @media (max-width: 480px) {
     body {
-        background-size: 220% auto, 220% auto, cover;
-        background-position: center bottom, center top, top center;
+        background-size: 100% 100%, 120% 120%, 120% 120%, cover;
+        background-position: center bottom, center top, top center, center 20%;
     }
 
     .container:not(.with-sidebar) .form-container {
         width: calc(100vw - 24px);
         max-width: 460px;
-        top: 56%;
         min-height: 250px;
         padding: calc(var(--spacing-md) - 6px);
         padding-top: calc(var(--spacing-xs) + 2px);
         padding-bottom: calc(var(--spacing-xs) + 2px);
         border-radius: 42px;
+    }
+    
+    /* Ajuste para formulário de registro em mobile */
+    .container:not(.with-sidebar) .form-container:has(#perfilCompletoForm[style*="display: block"]) {
+        width: calc(100vw - 24px);
+        max-width: calc(100vw - 24px);
+        max-height: 85vh;
     }
 }
 
@@ -341,6 +423,58 @@ h4 {
     max-width: 100%;
 }
 
+#cadastroCredenciaisSection {
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    position: relative;
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-right: -20px;
+    padding-right: 20px;
+}
+
+/* Remover estilo de card quando estiver no modo registro */
+#perfilCompletoForm[style*="display: block"] #cadastroCredenciaisSection,
+#perfilCompletoForm:not([style*="display: none"]) #cadastroCredenciaisSection {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+#cadastroCredenciaisSection::before {
+    display: none;
+}
+
+#cadastroCredenciaisSection > * {
+    position: relative;
+    z-index: 1;
+}
+
+#cadastroCredenciaisSection h3 {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+#cadastroCredenciaisSection label {
+    color: var(--text-secondary);
+}
+
+#cadastroCredenciaisSection small {
+    color: var(--text-muted);
+}
+
+/* Estilo do email institucional - cor laranja como destaque */
+#cadastroEmail {
+    color: var(--accent-orange) !important;
+    font-weight: 600 !important;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -391,7 +525,7 @@ body:has(.bottom-nav[style*="display: flex"]) #registerForm,
 }
 
 .login-hero-title {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-shadow:
@@ -400,7 +534,7 @@ body:has(.bottom-nav[style*="display: flex"]) #registerForm,
 }
 
 .login-hero-subtitle {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -427,11 +561,11 @@ body:has(.bottom-nav[style*="display: flex"]) #registerForm,
     }
 
     .login-hero-title {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .login-hero-subtitle {
-        font-size: 10px;
+        font-size: 8px;
     }
 }
 
@@ -445,15 +579,16 @@ body:has(.bottom-nav[style*="display: flex"]) #registerForm,
     right: 24px;
     display: none;
     align-items: center;
-    gap: 12px;
+    justify-content: flex-end;
+    gap: 8px;
     z-index: 20;
     animation: heroFloat 6s ease-in-out infinite reverse;
 }
 
 .social-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
     background: transparent;
     border: none;
     box-shadow: none;
@@ -493,13 +628,13 @@ body:has(.bottom-nav[style*="display: flex"]) #registerForm,
     .login-social {
         top: 12px;
         right: 14px;
-        gap: 10px;
+        gap: 6px;
     }
 
     .social-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
     }
 }
 
@@ -746,16 +881,16 @@ select,
 textarea {
     width: 100%;
     padding: 14px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(79, 156, 255, 0.12);
     border-radius: var(--radius-md);
     font-size: 16px;
     font-family: inherit;
     font-weight: 500;
-    background: #2A303A;
-    color: #F7F9FC;
+    background: rgba(17, 27, 47, 0.82);
+    color: var(--text-secondary);
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
 }
 
 .input-with-icon input {
@@ -769,14 +904,14 @@ input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 138, 60, 0.22);
-    border-color: rgba(255, 138, 60, 0.6);
-    background: #323845;
+    box-shadow: 0 0 0 3px rgba(79, 156, 255, 0.28);
+    border-color: rgba(79, 156, 255, 0.55);
+    background: rgba(19, 31, 54, 0.92);
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: rgba(245, 246, 250, 0.6);
+    color: rgba(226, 232, 240, 0.58);
 }
 
 /* Corrige autofill do navegador para manter o tema escuro */
@@ -784,9 +919,9 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0px 1000px #2A303A inset;
-    -webkit-text-fill-color: #F7F9FC;
-    caret-color: #F7F9FC;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(17, 27, 47, 0.82) inset;
+    -webkit-text-fill-color: var(--text-secondary);
+    caret-color: var(--text-secondary);
     transition: background-color 9999s ease-in-out 0s;
     border-radius: var(--radius-md);
     font-size: 16px !important;
@@ -840,7 +975,7 @@ textarea {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #FF8A3C 0%, #FF7A1A 100%);
+    background: var(--primary);
     color: #FFFFFF;
     box-shadow: var(--shadow-button);
 }
@@ -968,6 +1103,16 @@ textarea {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 1;
+}
+
+/* Classe para esconder a barra quando não está rolando */
+.bottom-nav.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .nav-item {
@@ -1434,8 +1579,8 @@ textarea {
         padding: 0;
         padding-bottom: 0;
         align-items: flex-start;
-        background-size: 120% auto, 120% auto, 110% auto;
-        background-position: center bottom, center top, center top -110px;
+        background-size: 100% 100%, 120% 120%, 120% 120%, cover;
+        background-position: center bottom, center top, center top -110px, center 20%;
     }
     
     /* Container de login mantém fixo em mobile */

@@ -11,14 +11,33 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_secret_key_aqui_mude_em_producao';
 
 // Middleware
-// Configurar CORS para aceitar requisições do GitHub Pages e localhost
+// Obter IP local da máquina
+function getLocalIP() {
+    const os = require('os');
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
+const LOCAL_IP = getLocalIP();
+
+// Configurar CORS para aceitar requisições do GitHub Pages, localhost e rede local
 app.use(cors({
     origin: [
         'https://rogeriouchoaa0753-netizen.github.io',
         'https://plataforma-mb.onrender.com',
         'http://localhost:3001',
         'http://localhost:3000',
-        'http://127.0.0.1:3001'
+        'http://127.0.0.1:3001',
+        `http://${LOCAL_IP}:3001`,
+        // Permitir qualquer origem em desenvolvimento (para facilitar acesso mobile)
+        ...(process.env.NODE_ENV !== 'production' ? [/^http:\/\/192\.168\.\d+\.\d+:3001$/, /^http:\/\/10\.\d+\.\d+\.\d+:3001$/] : [])
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -26,6 +45,18 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '50mb' })); // Aumentar limite para suportar textos grandes e arquivos
+
+// Middleware para desabilitar cache em desenvolvimento (especialmente para mobile)
+app.use((req, res, next) => {
+    // Desabilitar cache para HTML, CSS e JS durante desenvolvimento
+    if (req.path.match(/\.(html|css|js)$/)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
+});
+
 app.use(express.static('public'));
 
 db.initialize()
@@ -2834,10 +2865,13 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando na porta ${PORT}`);
-  console.log(`Acesse: http://localhost:${PORT}`);
+  console.log(`Acesse localmente: http://localhost:${PORT}`);
+  console.log(`Acesse na rede: http://${LOCAL_IP}:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`\n📱 Para acessar do celular na mesma rede WiFi:`);
+  console.log(`   Use: http://${LOCAL_IP}:${PORT}`);
 });
 
 // Fechar banco de dados ao encerrar

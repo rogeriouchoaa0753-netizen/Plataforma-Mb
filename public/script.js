@@ -59,15 +59,72 @@ const pageTitle = document.getElementById('pageTitle');
 const cadastroCredenciaisSection = document.getElementById('cadastroCredenciaisSection');
 const cadastroNomeInput = document.getElementById('cadastroNome');
 const cadastroSobrenomeInput = document.getElementById('cadastroSobrenome');
+const cadastroNomeCompletoInput = document.getElementById('cadastroNomeCompleto');
+const cadastroSobrenomeCompletoInput = document.getElementById('cadastroSobrenomeCompleto');
 const cadastroEmailInput = document.getElementById('cadastroEmail');
 const cadastroCpfInput = document.getElementById('cadastroCpf');
 const cadastroSenhaInput = document.getElementById('cadastroSenha');
 const perfilDadosSection = document.getElementById('perfilDadosSection');
-const btnSalvarCadastro = document.getElementById('btnSalvarCadastro');
+const btnCriarConta = document.getElementById('btnCriarConta');
+const btnSalvarPerfil = document.getElementById('btnSalvarPerfil');
+// Manter compatibilidade com código antigo
+const btnSalvarCadastro = btnCriarConta;
 let currentUserId = null;
 
-if (cadastroNomeInput) cadastroNomeInput.addEventListener('input', atualizarEmailInstitucional);
-if (cadastroSobrenomeInput) cadastroSobrenomeInput.addEventListener('input', atualizarEmailInstitucional);
+if (cadastroNomeInput) {
+    cadastroNomeInput.addEventListener('input', () => {
+        validarFormularioCadastro();
+    });
+}
+if (cadastroSobrenomeInput) {
+    cadastroSobrenomeInput.addEventListener('input', () => {
+        validarFormularioCadastro();
+    });
+    // Gerar email apenas quando finalizar de preencher o sobrenome
+    cadastroSobrenomeInput.addEventListener('blur', () => {
+        if (cadastroSobrenomeInput.value.trim()) {
+            atualizarEmailInstitucional();
+        }
+    });
+}
+if (cadastroCpfInput) {
+    cadastroCpfInput.addEventListener('input', validarFormularioCadastro);
+}
+if (cadastroSenhaInput) {
+    cadastroSenhaInput.addEventListener('input', validarFormularioCadastro);
+}
+if (cadastroNomeCompletoInput) cadastroNomeCompletoInput.addEventListener('input', () => {
+    cadastroNomeInput.value = cadastroNomeCompletoInput.value;
+    // Email será gerado apenas quando finalizar o sobrenome
+});
+if (cadastroSobrenomeCompletoInput) {
+    cadastroSobrenomeCompletoInput.addEventListener('input', () => {
+        cadastroSobrenomeInput.value = cadastroSobrenomeCompletoInput.value;
+    });
+    // Gerar email apenas quando finalizar de preencher o sobrenome
+    cadastroSobrenomeCompletoInput.addEventListener('blur', () => {
+        if (cadastroSobrenomeCompletoInput.value.trim()) {
+            cadastroSobrenomeInput.value = cadastroSobrenomeCompletoInput.value;
+            atualizarEmailInstitucional();
+        }
+    });
+}
+
+function abrirModalForm(elemento) {
+    if (!elemento) return;
+    const container = elemento.closest('.form-section');
+    if (container) {
+        container.style.setProperty('display', 'block', 'important');
+        container.style.setProperty('visibility', 'visible', 'important');
+    }
+    requestAnimationFrame(() => {
+        elemento.scrollTop = 0;
+    });
+}
+
+function fecharModalForms() {
+    // Placeholder para compatibilidade com chamadas existentes
+}
 
 
 // Verificar se já está logado
@@ -76,8 +133,31 @@ window.addEventListener('DOMContentLoaded', () => {
     configurarPersistenciaRememberMe();
 
     const token = localStorage.getItem('token');
+    const secaoSalva = localStorage.getItem('secaoAtual');
+    
+    // Ocultar logo e ícones sociais imediatamente se estiver na tela de registro
+    if (secaoSalva === 'registro' && !token) {
+        const loginHero = document.getElementById('loginHero');
+        const loginSocial = document.getElementById('loginSocial');
+        if (loginHero) {
+            loginHero.style.display = 'none';
+            loginHero.style.visibility = 'hidden';
+        }
+        if (loginSocial) {
+            loginSocial.style.display = 'none';
+            loginSocial.style.visibility = 'hidden';
+        }
+    }
+    
     if (token) {
         verificarToken(token);
+    } else {
+        // Se não estiver logado, restaurar última tela (login ou registro)
+        if (secaoSalva === 'registro') {
+            ativarCadastroCompleto();
+        } else {
+            mostrarFormularioLogin();
+        }
     }
     
     // Verificar periodicamente se o sidebar está visível quando logado e esconder formulários
@@ -135,31 +215,95 @@ function garantirSidebarVisivel() {
 
 function mostrarFormularioLogin() {
     limparMensagem();
+    
+    // Salvar estado
+    localStorage.setItem('secaoAtual', 'login');
+    
+    // OCULTAR ELEMENTOS DO CADASTRO
+    const tituloCadastro = document.getElementById('tituloCadastro');
+    if (tituloCadastro) {
+        tituloCadastro.style.display = 'none';
+        tituloCadastro.style.visibility = 'hidden';
+    }
+    
+    const btnVoltarRegistro = document.getElementById('btnVoltarRegistro');
+    if (btnVoltarRegistro) {
+        btnVoltarRegistro.style.display = 'none';
+        btnVoltarRegistro.style.visibility = 'hidden';
+        btnVoltarRegistro.style.opacity = '0';
+    }
+    
+    // Ocultar formulário de cadastro PRIMEIRO
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
+        perfilCompletoForm.style.visibility = 'hidden';
     }
+    
     if (cadastroCredenciaisSection) {
         cadastroCredenciaisSection.style.display = 'none';
+        cadastroCredenciaisSection.style.visibility = 'hidden';
     }
+    
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'none';
     }
-    if (btnSalvarCadastro) {
-        btnSalvarCadastro.textContent = 'Entrar';
-    }
-    if (perfilCompletoFormElement) {
-        delete perfilCompletoFormElement.dataset.mode;
-    }
+    
     if (registerForm) {
         registerForm.classList.remove('active');
         registerForm.style.display = 'none';
         registerForm.style.visibility = 'hidden';
     }
+    
+    if (btnCriarConta) {
+        btnCriarConta.textContent = 'Entrar';
+    }
+    
+    if (perfilCompletoFormElement) {
+        delete perfilCompletoFormElement.dataset.mode;
+    }
+    
+    // MOSTRAR ELEMENTOS DO LOGIN
+    const loginHero = document.getElementById('loginHero');
+    if (loginHero) {
+        loginHero.style.display = 'flex';
+        loginHero.style.visibility = 'visible';
+    }
+    
+    const loginSocial = document.getElementById('loginSocial');
+    if (loginSocial) {
+        loginSocial.style.display = 'flex';
+        loginSocial.style.visibility = 'visible';
+    }
+    
     if (loginForm) {
         loginForm.classList.add('active');
         loginForm.style.display = 'block';
         loginForm.style.visibility = 'visible';
     }
+    
+    // RESTAURAR FORM-CONTAINER
+    // Aguardar para garantir que o formulário foi ocultado e o CSS :has() não interfira
+    setTimeout(() => {
+        const formContainer = document.querySelector('.form-container');
+        if (formContainer) {
+            // Remover todos os estilos inline
+            formContainer.removeAttribute('style');
+            
+            // Forçar recálculo do CSS
+            requestAnimationFrame(() => {
+                // Verificar e corrigir se necessário
+                const formContainer = document.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.offsetHeight; // Forçar reflow
+                    
+                    // Removido: estilos inline que sobrescreviam o CSS
+                    // O posicionamento agora é controlado apenas pelo CSS
+                }
+            });
+        }
+    }, 50);
+    
+    // LIMPAR OUTROS ELEMENTOS
     const cpfInput = document.getElementById('cpf');
     if (cpfInput) {
         cpfInput.value = '';
@@ -167,9 +311,11 @@ function mostrarFormularioLogin() {
         cpfInput.style.backgroundColor = '#f5f5f5';
         cpfInput.style.cursor = 'not-allowed';
     }
+    
     if (sidebarMenu) {
         sidebarMenu.style.display = 'none';
     }
+    
     document.body.classList.remove('body-with-sidebar');
     document.body.style.paddingBottom = '20px';
 }
@@ -177,6 +323,38 @@ function mostrarFormularioLogin() {
 function ativarCadastroCompleto() {
     esconderFormulariosLogin();
     limparMensagem();
+    
+    // Salvar que está na tela de registro
+    localStorage.setItem('secaoAtual', 'registro');
+    
+    // Mostrar título do cadastro fora da janela
+    const tituloCadastro = document.getElementById('tituloCadastro');
+    if (tituloCadastro) {
+        tituloCadastro.style.setProperty('display', 'block', 'important');
+        tituloCadastro.style.setProperty('visibility', 'visible', 'important');
+    }
+    
+    // Mostrar botão Voltar
+    const btnVoltarRegistro = document.getElementById('btnVoltarRegistro');
+    if (btnVoltarRegistro) {
+        btnVoltarRegistro.style.setProperty('display', 'flex', 'important');
+        btnVoltarRegistro.style.setProperty('visibility', 'visible', 'important');
+        btnVoltarRegistro.style.setProperty('opacity', '1', 'important');
+    }
+    
+    // Ocultar logo e frase ADMB
+    const loginHero = document.getElementById('loginHero');
+    if (loginHero) {
+        loginHero.style.setProperty('display', 'none', 'important');
+        loginHero.style.setProperty('visibility', 'hidden', 'important');
+    }
+    
+    // Ocultar ícones sociais (Instagram e YouTube)
+    const loginSocial = document.getElementById('loginSocial');
+    if (loginSocial) {
+        loginSocial.style.setProperty('display', 'none', 'important');
+        loginSocial.style.setProperty('visibility', 'hidden', 'important');
+    }
 
     if (inicioSection) inicioSection.style.display = 'none';
     if (profileSection) profileSection.style.display = 'none';
@@ -190,7 +368,8 @@ function ativarCadastroCompleto() {
     document.body.style.paddingBottom = '20px';
 
     if (perfilCompletoForm) {
-        perfilCompletoForm.style.display = 'block';
+        perfilCompletoForm.style.setProperty('display', 'block', 'important');
+        perfilCompletoForm.style.setProperty('visibility', 'visible', 'important');
         abrirModalForm(perfilCompletoForm);
     }
 
@@ -200,14 +379,26 @@ function ativarCadastroCompleto() {
     }
 
     if (cadastroCredenciaisSection) {
-        cadastroCredenciaisSection.style.display = 'block';
+        cadastroCredenciaisSection.style.setProperty('display', 'block', 'important');
+        cadastroCredenciaisSection.style.setProperty('visibility', 'visible', 'important');
     }
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'none';
     }
-    if (btnSalvarCadastro) {
-        btnSalvarCadastro.textContent = 'Criar Conta';
+    const cadastroNomeSection = document.getElementById('cadastroNomeSection');
+    if (cadastroNomeSection) {
+        cadastroNomeSection.style.display = 'block';
     }
+    if (btnCriarConta) {
+        btnCriarConta.textContent = 'Criar Conta';
+        // Resetar estado do botão
+        btnCriarConta.disabled = true;
+        btnCriarConta.style.opacity = '0.5';
+        btnCriarConta.style.cursor = 'not-allowed';
+    }
+    
+    // Validar formulário após ativar
+    setTimeout(validarFormularioCadastro, 100);
 
     const cpfInput = document.getElementById('cpf');
     if (cpfInput) {
@@ -247,12 +438,18 @@ function ativarCadastroCompleto() {
 
     if (cadastroNomeInput) cadastroNomeInput.value = '';
     if (cadastroSobrenomeInput) cadastroSobrenomeInput.value = '';
+    if (cadastroNomeCompletoInput) cadastroNomeCompletoInput.value = '';
+    if (cadastroSobrenomeCompletoInput) cadastroSobrenomeCompletoInput.value = '';
     if (cadastroEmailInput) cadastroEmailInput.value = '';
     if (cadastroCpfInput) cadastroCpfInput.value = '';
     if (cadastroSenhaInput) cadastroSenhaInput.value = '';
     atualizarEmailInstitucional();
 
-    pageTitle.textContent = 'Crie sua Conta';
+    pageTitle.textContent = 'Cadastro';
+    const perfilFormTitulo = document.getElementById('perfilFormTitulo');
+    if (perfilFormTitulo) {
+        perfilFormTitulo.textContent = 'Preencha seus dados para criar sua conta';
+    }
 
     carregarOcupacoesEIgrejasPerfil();
 
@@ -322,14 +519,53 @@ function atualizarEmailInstitucional() {
     if (!cadastroEmailInput) return;
     const emailGerado = gerarEmailInstitucional(cadastroNomeInput?.value, cadastroSobrenomeInput?.value);
     cadastroEmailInput.value = emailGerado;
+    validarFormularioCadastro();
+}
+
+// Função para validar formulário de cadastro em tempo real
+function validarFormularioCadastro() {
+    const btnCriar = document.getElementById('btnCriarConta');
+    if (!btnCriar) return;
+    
+    // Verificar se estamos no modo de registro
+    if (!perfilCompletoFormElement || perfilCompletoFormElement.dataset.mode !== 'registro') {
+        return;
+    }
+    
+    const nome = cadastroNomeInput?.value?.trim() || '';
+    const sobrenome = cadastroSobrenomeInput?.value?.trim() || '';
+    const cpf = cadastroCpfInput?.value?.replace(/\D/g, '') || '';
+    const senha = cadastroSenhaInput?.value || '';
+    
+    // Validar se todos os campos obrigatórios estão preenchidos
+    const nomeValido = nome.length >= 2;
+    const sobrenomeValido = sobrenome.length >= 2;
+    const cpfValido = cpf.length === 11;
+    const senhaValida = senha.length >= 6;
+    
+    const formularioValido = nomeValido && sobrenomeValido && cpfValido && senhaValida;
+    
+    // Habilitar/desabilitar botão
+    if (formularioValido) {
+        btnCriar.disabled = false;
+        btnCriar.style.opacity = '1';
+        btnCriar.style.cursor = 'pointer';
+    } else {
+        btnCriar.disabled = true;
+        btnCriar.style.opacity = '0.5';
+        btnCriar.style.cursor = 'not-allowed';
+    }
 }
 
 async function processarCadastroInicial() {
+    console.log('processarCadastroInicial chamado');
     const primeiroNome = cadastroNomeInput?.value?.trim() || '';
     const sobrenome = cadastroSobrenomeInput?.value?.trim() || '';
     const cpfCadastro = cadastroCpfInput?.value?.replace(/\D/g, '') || '';
     const senhaCadastro = cadastroSenhaInput?.value || '';
     const emailGerado = gerarEmailInstitucional(primeiroNome, sobrenome);
+
+    console.log('Dados coletados:', { primeiroNome, sobrenome, cpfCadastro: cpfCadastro.length, senhaCadastro: senhaCadastro.length, emailGerado });
 
     if (!primeiroNome || !sobrenome) {
         mostrarMensagem('Informe nome e sobrenome para gerar o email.', 'error');
@@ -362,6 +598,9 @@ async function processarCadastroInicial() {
     };
 
     try {
+        console.log('Enviando requisição para:', `${API_URL}/registro`);
+        console.log('Payload:', { ...payload, senha: '***' });
+        
         const response = await fetch(`${API_URL}/registro`, {
             method: 'POST',
             headers: {
@@ -370,54 +609,90 @@ async function processarCadastroInicial() {
             body: JSON.stringify(payload)
         });
 
+        console.log('Resposta recebida:', { status: response.status, statusText: response.statusText });
+
         let data;
         try {
-            data = await response.json();
+            const text = await response.text();
+            console.log('Resposta (texto):', text);
+            data = JSON.parse(text);
         } catch (parseError) {
             console.error('Erro ao interpretar resposta do cadastro:', parseError);
-            mostrarMensagem('Erro inesperado ao criar a conta. Tente novamente.', 'error');
+            mostrarMensagem('Erro inesperado ao criar a conta. O servidor pode estar offline.', 'error');
             return;
         }
 
         if (!response.ok) {
             const mensagemErro = data?.erro || data?.mensagem || 'Não foi possível criar a conta.';
+            console.error('Erro na resposta:', mensagemErro);
             mostrarMensagem(mensagemErro, 'error');
             return;
         }
 
-        mostrarMensagem('Conta criada com sucesso! Complete seu perfil quando quiser.', 'success');
+        // Salvar token e dados do usuário
         localStorage.setItem('token', data.token);
         currentUserId = data.usuario.id;
-        salvarSecaoAtual('inicio');
+        salvarSecaoAtual('perfil');
 
+        // Esconder formulários de login/registro IMEDIATAMENTE
+        esconderFormulariosLogin();
+        
+        // Esconder formulário de cadastro
+        if (perfilCompletoForm) {
+            perfilCompletoForm.style.display = 'none';
+            perfilCompletoForm.style.visibility = 'hidden';
+        }
+        
+        // Esconder título e botão voltar do cadastro
+        const tituloCadastro = document.getElementById('tituloCadastro');
+        if (tituloCadastro) {
+            tituloCadastro.style.display = 'none';
+            tituloCadastro.style.visibility = 'hidden';
+        }
+        
+        const btnVoltarRegistro = document.getElementById('btnVoltarRegistro');
+        if (btnVoltarRegistro) {
+            btnVoltarRegistro.style.display = 'none';
+            btnVoltarRegistro.style.visibility = 'hidden';
+        }
+
+        // Garantir que o sidebar esteja visível
         garantirSidebarVisivel();
+        
+        // Configurar itens do menu baseado no ID do usuário
         configurarItensMenu(currentUserId);
 
-        if (perfilCompletoFormElement) {
-            perfilCompletoFormElement.dataset.mode = 'edicao';
-        }
-        if (cadastroCredenciaisSection) {
-            cadastroCredenciaisSection.style.display = 'none';
-        }
-        if (perfilDadosSection) {
-            perfilDadosSection.style.display = 'block';
-        }
-
-        const cpfInputPerfil = document.getElementById('cpf');
-        if (cpfInputPerfil) {
-            let cpfMask = cpfCadastro.replace(/(\d{3})(\d)/, '$1.$2');
-            cpfMask = cpfMask.replace(/(\d{3})(\d)/, '$1.$2');
-            cpfMask = cpfMask.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            cpfInputPerfil.value = cpfMask;
-            cpfInputPerfil.readOnly = true;
-            cpfInputPerfil.style.backgroundColor = '#f5f5f5';
-            cpfInputPerfil.style.cursor = 'not-allowed';
-        }
-
-        await carregarPerfilCompleto();
+        // Mostrar mensagem "Cadastro Concluído"
+        mostrarMensagem('Cadastro Concluído.', 'success');
+        
+        // Após 1 segundo, mostrar mensagem de boas-vindas
+        setTimeout(() => {
+            mostrarMensagem('Seja bem vindo a plataforma MB', 'success');
+            
+            // Após 5 segundos, entrar no sistema
+            setTimeout(async () => {
+                await carregarPerfilCompleto();
+                // Mostrar seção de perfil após login
+                mostrarSecaoPerfil();
+            }, 5000);
+        }, 1000);
     } catch (error) {
         console.error('Erro ao criar conta:', error);
-        mostrarMensagem('Erro ao criar conta. Verifique sua conexão e tente novamente.', 'error');
+        console.error('Tipo do erro:', error.name);
+        console.error('Mensagem do erro:', error.message);
+        console.error('URL tentada:', `${API_URL}/registro`);
+        
+        let mensagemErro = 'Erro ao criar conta. ';
+        
+        if (error.message && error.message.includes('Failed to fetch')) {
+            mensagemErro += 'Não foi possível conectar ao servidor. Verifique se o servidor está rodando.';
+        } else if (error.message && error.message.includes('NetworkError')) {
+            mensagemErro += 'Erro de rede. Verifique sua conexão com a internet.';
+        } else {
+            mensagemErro += `Erro: ${error.message || 'Erro desconhecido'}`;
+        }
+        
+        mostrarMensagem(mensagemErro, 'error');
     }
 }
 
@@ -739,6 +1014,28 @@ async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igr
         console.error('Erro ao carregar ocupações e igrejas:', error);
     }
 }
+// Botão X removido - não é mais necessário no formulário de registro
+
+// Botão Voltar no formulário de registro
+const btnVoltarRegistro = document.getElementById('btnVoltarRegistro');
+if (btnVoltarRegistro) {
+    btnVoltarRegistro.addEventListener('click', (e) => {
+        e.preventDefault();
+        mostrarFormularioLogin();
+    });
+    
+    // Efeito hover no botão voltar
+    btnVoltarRegistro.addEventListener('mouseenter', () => {
+        btnVoltarRegistro.style.transform = 'translateX(-2px)';
+        btnVoltarRegistro.style.boxShadow = '0 4px 12px rgba(79, 156, 255, 0.4)';
+    });
+    btnVoltarRegistro.addEventListener('mouseleave', () => {
+        btnVoltarRegistro.style.transform = 'translateX(0)';
+        btnVoltarRegistro.style.boxShadow = '0 2px 8px rgba(79, 156, 255, 0.3)';
+    });
+}
+
+
 // Botão cancelar perfil completo
 const cancelarPerfilCompleto = document.getElementById('cancelarPerfilCompleto');
 if (cancelarPerfilCompleto) {
@@ -817,6 +1114,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// Evento de clique direto no botão "Criar Conta" como fallback
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCriar = document.getElementById('btnCriarConta');
+    if (btnCriar) {
+        btnCriar.addEventListener('click', async (e) => {
+            // Verificar se estamos no modo de registro
+            const formElement = document.getElementById('perfilCompletoFormElement');
+            if (formElement && formElement.dataset.mode === 'registro') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Botão Criar Conta clicado (modo registro)');
+                
+                // Verificar se o botão está desabilitado
+                if (btnCriar.disabled) {
+                    console.log('Botão desabilitado - validando formulário...');
+                    validarFormularioCadastro();
+                    if (btnCriar.disabled) {
+                        mostrarMensagem('Preencha todos os campos obrigatórios corretamente.', 'error');
+                        return;
+                    }
+                }
+                
+                await processarCadastroInicial();
+            }
+        });
+    }
+});
+
 // Formulário de perfil completo - usar delegação de eventos para garantir que funcione
 document.addEventListener('submit', async (e) => {
     // Verificar se é o formulário de perfil completo
@@ -827,6 +1152,7 @@ document.addEventListener('submit', async (e) => {
 
         const modoFormulario = perfilCompletoFormElement?.dataset.mode || 'edicao';
         if (modoFormulario === 'registro') {
+            console.log('Modo registro detectado no submit');
             await processarCadastroInicial();
             return;
         }
@@ -6512,6 +6838,10 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     perfilCompletoForm.style.display = 'block';
     abrirModalForm(perfilCompletoForm);
     pageTitle.textContent = 'Complete seu Perfil';
+    const perfilFormTitulo = document.getElementById('perfilFormTitulo');
+    if (perfilFormTitulo) {
+        perfilFormTitulo.textContent = 'Preencha seus dados para continuar';
+    }
     
     if (perfilCompletoFormElement) {
         perfilCompletoFormElement.dataset.mode = 'edicao';
@@ -6522,8 +6852,12 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'block';
     }
-    if (btnSalvarCadastro) {
-        btnSalvarCadastro.textContent = 'Salvar Perfil';
+    const cadastroNomeSection = document.getElementById('cadastroNomeSection');
+    if (cadastroNomeSection) {
+        cadastroNomeSection.style.display = 'none';
+    }
+    if (btnSalvarPerfil) {
+        btnSalvarPerfil.textContent = 'Salvar Perfil';
     }
     const relacionamentosSection = document.getElementById('relacionamentosSection');
     if (relacionamentosSection) relacionamentosSection.style.display = 'block';
@@ -7324,3 +7658,104 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ============================================
+// EFEITO AUTO-HIDE NA BARRA DE NAVEGAÇÃO
+// ============================================
+(function() {
+    let scrollTimeout;
+    let lastScrollTop = 0;
+    let isScrolling = false;
+    
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    if (!sidebarMenu) return;
+    
+    // Função para mostrar a barra
+    function showNavBar() {
+        if (sidebarMenu.style.display === 'flex') {
+            sidebarMenu.classList.remove('hidden');
+            isScrolling = true;
+        }
+    }
+    
+    // Função para esconder a barra
+    function hideNavBar() {
+        if (sidebarMenu.style.display === 'flex') {
+            sidebarMenu.classList.add('hidden');
+            isScrolling = false;
+        }
+    }
+    
+    // Detectar scroll
+    function handleScroll() {
+        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Se estiver rolando, mostrar a barra
+        if (sidebarMenu.style.display === 'flex') {
+            showNavBar();
+        }
+        
+        // Limpar timeout anterior
+        clearTimeout(scrollTimeout);
+        
+        // Após parar de rolar por 1.5 segundos, esconder a barra
+        scrollTimeout = setTimeout(() => {
+            if (sidebarMenu.style.display === 'flex') {
+                hideNavBar();
+            }
+        }, 1500);
+        
+        lastScrollTop = currentScrollTop;
+    }
+    
+    // Detectar touch/scroll em mobile
+    let touchStartY = 0;
+    let touchEndY = 0;
+    
+    function handleTouchStart(e) {
+        touchStartY = e.touches[0].clientY;
+    }
+    
+    function handleTouchMove(e) {
+        if (sidebarMenu.style.display === 'flex') {
+            showNavBar();
+            clearTimeout(scrollTimeout);
+        }
+    }
+    
+    function handleTouchEnd(e) {
+        touchEndY = e.changedTouches[0].clientY;
+        
+        // Se houve movimento significativo, mostrar barra
+        if (Math.abs(touchStartY - touchEndY) > 10 && sidebarMenu.style.display === 'flex') {
+            showNavBar();
+            clearTimeout(scrollTimeout);
+            
+            // Esconder após 1.5 segundos sem movimento
+            scrollTimeout = setTimeout(() => {
+                if (sidebarMenu.style.display === 'flex') {
+                    hideNavBar();
+                }
+            }, 1500);
+        }
+    }
+    
+    // Adicionar event listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Mostrar barra quando clicar em qualquer lugar (para facilitar acesso)
+    document.addEventListener('click', () => {
+        if (sidebarMenu.style.display === 'flex') {
+            showNavBar();
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if (sidebarMenu.style.display === 'flex') {
+                    hideNavBar();
+                }
+            }, 2000);
+        }
+    }, { passive: true });
+})();
