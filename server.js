@@ -414,7 +414,7 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
         // Atualizar perfil sem alterar CPF
         db.run(`UPDATE usuarios SET 
                 nome_completo = ?, endereco = ?, cep = ?, 
-                telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = 1, 
+                telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, 
                 atualizado_em = CURRENT_TIMESTAMP
                 WHERE id = ?`,
           [nome_completo, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id],
@@ -533,7 +533,7 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
           // Atualizar perfil com CPF
           db.run(`UPDATE usuarios SET 
                   nome_completo = ?, cpf = ?, endereco = ?, cep = ?, 
-                  telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = 1, 
+                  telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, 
                   atualizado_em = CURRENT_TIMESTAMP
                   WHERE id = ?`,
             [nome_completo, cpf, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id],
@@ -730,7 +730,7 @@ function processarFilhosAdmin(req, res, filhos, usuarioId) {
             }
 
             db.run(`INSERT INTO usuarios (nome, nome_completo, email, cpf, telefone, senha, perfil_completo) 
-                    VALUES (?, ?, ?, ?, ?, ?, 0)`,
+                    VALUES (?, ?, ?, ?, ?, ?, false)`,
               [nomeFilho, filho.nome_completo || filho.nome || null, filho.email || null, cpfLimpo || null, filho.telefone || null, senhaHash],
               function(err) {
                 if (err) {
@@ -776,7 +776,7 @@ function processarFilhosAdmin(req, res, filhos, usuarioId) {
         }
 
         db.run(`INSERT INTO usuarios (nome, nome_completo, email, telefone, senha, perfil_completo) 
-                VALUES (?, ?, ?, ?, ?, 0)`,
+                VALUES (?, ?, ?, ?, ?, false)`,
           [nomeFilho, filho.nome_completo || filho.nome || null, filho.email || null, filho.telefone || null, senhaHash],
           function(err) {
             if (err) {
@@ -981,7 +981,7 @@ function processarFilhos(req, res, filhos) {
 
                       // CPF não existe, criar novo usuário
                       db.run(`INSERT INTO usuarios (nome, nome_completo, email, cpf, telefone, senha, perfil_completo) 
-                              VALUES (?, ?, ?, ?, ?, ?, 0)`,
+                              VALUES (?, ?, ?, ?, ?, ?, false)`,
                         [filho.nome_completo.split(' ')[0], filho.nome_completo, filho.email || null, 
                          filho.cpf, filho.telefone || null, senhaHash],
                         function(err) {
