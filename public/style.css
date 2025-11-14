@@ -310,6 +310,51 @@ body > * {
     transform: none;
     width: 100%;
     max-width: 100%;
+    overflow: visible;
+}
+
+/* Barra de rolagem para o formulário de perfil quando estiver aberto para edição */
+.container.with-sidebar #perfilCompletoForm[style*="display: block"],
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"]) {
+    position: relative;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    margin-right: -10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+}
+
+/* Garantir que o form-container também permita rolagem quando o formulário de perfil estiver aberto */
+.container.with-sidebar .form-container:has(#perfilCompletoForm[style*="display: block"]),
+.container.with-sidebar .form-container:has(#perfilCompletoForm:not([style*="display: none"])) {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Estilizar scrollbar do formulário de perfil */
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar {
+    width: 8px;
+}
+
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-track,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-track {
+    background: rgba(17, 27, 47, 0.3);
+    border-radius: 10px;
+}
+
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb {
+    background: rgba(79, 156, 255, 0.4);
+    border-radius: 10px;
+}
+
+.container.with-sidebar #perfilCompletoForm[style*="display: block"]::-webkit-scrollbar-thumb:hover,
+.container.with-sidebar #perfilCompletoForm:not([style*="display: none"])::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 156, 255, 0.6);
 }
 
 .form-container::before {
@@ -403,6 +448,72 @@ h4 {
 .form-section.active {
     display: block;
     animation: fadeIn 0.3s ease;
+}
+
+/* Barras de rolagem nas seções principais */
+#inicioSection.active,
+#profileSection.active,
+#adminSection.active,
+#configSection.active {
+    position: relative;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    margin-right: -10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+}
+
+/* Barra de rolagem específica para a área de conteúdo do perfil */
+#profileSection.active {
+    position: relative;
+}
+
+#profileSection.active #userInfo {
+    position: relative;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    margin-right: -10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 156, 255, 0.4) rgba(17, 27, 47, 0.3);
+}
+
+/* Estilizar scrollbar para as seções */
+#inicioSection.active::-webkit-scrollbar,
+#profileSection.active::-webkit-scrollbar,
+#adminSection.active::-webkit-scrollbar,
+#configSection.active::-webkit-scrollbar,
+#profileSection.active #userInfo::-webkit-scrollbar {
+    width: 8px;
+}
+
+#inicioSection.active::-webkit-scrollbar-track,
+#profileSection.active::-webkit-scrollbar-track,
+#adminSection.active::-webkit-scrollbar-track,
+#configSection.active::-webkit-scrollbar-track,
+#profileSection.active #userInfo::-webkit-scrollbar-track {
+    background: rgba(17, 27, 47, 0.3);
+    border-radius: 10px;
+}
+
+#inicioSection.active::-webkit-scrollbar-thumb,
+#profileSection.active::-webkit-scrollbar-thumb,
+#adminSection.active::-webkit-scrollbar-thumb,
+#configSection.active::-webkit-scrollbar-thumb,
+#profileSection.active #userInfo::-webkit-scrollbar-thumb {
+    background: rgba(79, 156, 255, 0.4);
+    border-radius: 10px;
+}
+
+#inicioSection.active::-webkit-scrollbar-thumb:hover,
+#profileSection.active::-webkit-scrollbar-thumb:hover,
+#adminSection.active::-webkit-scrollbar-thumb:hover,
+#configSection.active::-webkit-scrollbar-thumb:hover,
+#profileSection.active #userInfo::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 156, 255, 0.6);
 }
 
 .form-container #loginForm {
