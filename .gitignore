@@ -1,10 +1,42 @@
+# dependencias
 node_modules/
+
+# ambiente/segredos
 .env
+*.env
+.env.*
+
+# banco/dumps
 *.db
 *.sqlite
 *.sqlite3
-.DS_Store
+*.db-shm
+*.db-wal
+dump.sql
+backup.sql
+
+# logs e caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 *.log
+.cache/
+.tmp/
+
+# build/artefatos
+dist/
+build/
+coverage/
+
+# SO/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+
+
 
 
 

@@ -87,10 +87,10 @@ const authenticateToken = (req, res, next) => {
 // Rota de registro
 app.post('/api/registro', async (req, res) => {
   try {
-    const { nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, igreja_id, data_nascimento, estado_civil, data_sacamento } = req.body;
+    const { nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, igreja_id, data_nascimento, estado_civil, data_sacamento, endereco, cep, telefone, tem_filhos, quantidade_filhos } = req.body;
 
     // Validação
-    if (!nome || !email || !senha || !cpf || !data_nascimento || !estado_civil) {
+    if (!nome || !email || !senha || !cpf || !data_nascimento || !estado_civil || !endereco || !telefone) {
       return res.status(400).json({ erro: 'Todos os campos obrigatórios devem ser preenchidos' });
     }
 
@@ -98,6 +98,9 @@ app.post('/api/registro', async (req, res) => {
     if (estado_civil === 'casado' && !data_sacamento) {
       return res.status(400).json({ erro: 'Data de sacamento é obrigatória para casados' });
     }
+
+    // tem_filhos e quantidade_filhos são gerenciados através da tabela de relacionamentos (filhos)
+    // Não precisam ser validados no cadastro inicial
     
 
     if (senha.length < 6) {
@@ -161,8 +164,8 @@ app.post('/api/registro', async (req, res) => {
               // Inserir usuário com CPF e ocupação, incluindo novos campos
               const nomeCompleto = nome_completo || (sobrenome ? `${nome} ${sobrenome}` : nome);
               db.run(
-                'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, data_nascimento, estado_civil, data_sacamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, ocupacao_id, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null],
+                'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, ocupacao_id, data_nascimento, estado_civil, data_sacamento, endereco, cep, telefone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, ocupacao_id, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null, endereco, cep || null, telefone],
                 function(err) {
                   if (err) {
                     if (err.message && err.message.includes('UNIQUE constraint failed')) {
@@ -215,8 +218,8 @@ app.post('/api/registro', async (req, res) => {
           // Inserir usuário com CPF (sem ocupação), incluindo novos campos
           const nomeCompleto = nome_completo || (sobrenome ? `${nome} ${sobrenome}` : nome);
           db.run(
-            'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, data_nascimento, estado_civil, data_sacamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null],
+            'INSERT INTO usuarios (nome, sobrenome, nome_completo, email, senha, cpf, data_nascimento, estado_civil, data_sacamento, endereco, cep, telefone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [nome, sobrenome || null, nomeCompleto, email, senhaHash, cpf, data_nascimento, estado_civil, estado_civil === 'casado' ? data_sacamento : null, endereco, cep || null, telefone],
             function(err) {
               if (err) {
                 // Verificar se erro é por CPF duplicado
@@ -305,13 +308,67 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+// Rota de alteração de senha por CPF
+app.post('/api/recuperar-senha', async (req, res) => {
+  try {
+    const { cpf, novaSenha } = req.body;
+
+    // Validação
+    if (!cpf || !novaSenha) {
+      return res.status(400).json({ erro: 'CPF e nova senha são obrigatórios' });
+    }
+
+    if (novaSenha.length < 6) {
+      return res.status(400).json({ erro: 'A nova senha deve ter pelo menos 6 caracteres' });
+    }
+
+    // Limpar CPF (remover pontos e traços)
+    const cpfLimpo = cpf.replace(/\D/g, '');
+
+    if (cpfLimpo.length !== 11) {
+      return res.status(400).json({ erro: 'CPF inválido' });
+    }
+
+    // Buscar usuário pelo CPF
+    db.get('SELECT id FROM usuarios WHERE cpf = ?', [cpfLimpo], async (err, row) => {
+      if (err) {
+        console.error('Erro ao buscar usuário:', err);
+        return res.status(500).json({ erro: 'Erro ao buscar usuário' });
+      }
+
+      if (!row) {
+        return res.status(404).json({ erro: 'CPF não encontrado no sistema' });
+      }
+
+      // Hash da nova senha
+      const senhaHash = await bcrypt.hash(novaSenha, 10);
+
+      // Atualizar senha no banco
+      db.run('UPDATE usuarios SET senha = ? WHERE cpf = ?', [senhaHash, cpfLimpo], function(updateErr) {
+        if (updateErr) {
+          console.error('Erro ao atualizar senha:', updateErr);
+          return res.status(500).json({ erro: 'Erro ao atualizar senha' });
+        }
+
+        res.json({ 
+          mensagem: 'Senha alterada com sucesso!'
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({ erro: 'Erro no servidor' });
+  }
+});
+
 // Rota protegida - perfil do usuário
 // SEMPRE busca dados atualizados diretamente do SQL, sem cache
 app.get('/api/perfil', authenticateToken, (req, res) => {
   // SEMPRE buscar dados frescos do banco de dados SQL
   // Usar EXATAMENTE a mesma query da administração para garantir dados idênticos
-  db.get(`SELECT u.id, u.nome, u.nome_completo, u.email, u.cpf, u.telefone, u.endereco, u.cep, 
-          u.estado_civil, u.ocupacao_id, u.perfil_completo, u.criado_em, u.atualizado_em,
+  db.get(`SELECT u.id, u.nome, u.sobrenome, u.nome_completo, u.email, u.cpf, u.telefone, u.endereco, u.cep, 
+          u.estado_civil, u.ocupacao_id, u.perfil_completo, u.foto_perfil, u.criado_em, u.atualizado_em,
+          u.data_nascimento, u.data_sacamento, u.data_batismo, u.latitude, u.longitude,
           a.nome as ocupacao_nome,
           i.nome as igreja_nome, i.id as igreja_id, im.funcao as igreja_funcao
           FROM usuarios u
@@ -321,6 +378,10 @@ app.get('/api/perfil', authenticateToken, (req, res) => {
           WHERE u.id = ?`, [req.user.id], (err, row) => {
     if (err) {
       console.error('Erro ao buscar perfil do SQL:', err);
+      // Se o erro for por coluna não encontrada, informar que precisa reiniciar o servidor
+      if (err.message && err.message.includes('column') && err.message.includes('data_batismo')) {
+        return res.status(500).json({ erro: 'Coluna data_batismo não encontrada. Por favor, reinicie o servidor para criar a coluna.' });
+      }
       return res.status(500).json({ erro: 'Erro ao buscar perfil' });
     }
 
@@ -378,20 +439,19 @@ app.get('/api/perfil', authenticateToken, (req, res) => {
 
 // Rota para atualizar perfil completo
 app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
-  const { nome_completo, cpf, endereco, cep, telefone, estado_civil, ocupacao_id, igreja_id, filhos } = req.body;
+  const { nome, sobrenome, cpf, endereco, cep, telefone, estado_civil, ocupacao_id, igreja_id, filhos, foto_perfil } = req.body;
 
   console.log('Recebendo atualização de perfil:', { 
     usuario_id: req.user.id, 
-    nome_completo, 
     ocupacao_id, 
     igreja_id,
     tem_filhos: filhos && filhos.length > 0 ? filhos.length : 0
   });
 
-  // Validação básica
-  if (!nome_completo || !telefone || !endereco) {
-    console.log('Validação falhou:', { nome_completo: !!nome_completo, telefone: !!telefone, endereco: !!endereco });
-    return res.status(400).json({ erro: 'Nome completo, telefone e endereço são obrigatórios' });
+  // Validação básica - nome_completo removido, já é gerado automaticamente do nome e sobrenome
+  if (!telefone || !endereco) {
+    console.log('Validação falhou:', { telefone: !!telefone, endereco: !!endereco });
+    return res.status(400).json({ erro: 'Telefone e endereço são obrigatórios' });
   }
 
   // Buscar CPF atual do usuário
@@ -418,13 +478,29 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
       }
 
       function atualizarPerfilComIgreja() {
-        // Atualizar perfil sem alterar CPF
-        db.run(`UPDATE usuarios SET 
-                nome_completo = ?, endereco = ?, cep = ?, 
-                telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, 
-                atualizado_em = CURRENT_TIMESTAMP
-                WHERE id = ?`,
-          [nome_completo, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id],
+        // Buscar nome e sobrenome atuais do banco para gerar nome_completo
+        db.get('SELECT nome, sobrenome FROM usuarios WHERE id = ?', [req.user.id], (err, usuarioAtual) => {
+          if (err) {
+            console.error('Erro ao buscar nome e sobrenome:', err);
+            return res.status(500).json({ erro: 'Erro ao buscar dados do usuário' });
+          }
+          
+          // Gerar nome_completo a partir do nome e sobrenome (usar os valores do banco, não do body)
+          const nomeAtual = usuarioAtual?.nome || '';
+          const sobrenomeAtual = usuarioAtual?.sobrenome || '';
+          const nomeCompletoGerado = sobrenomeAtual ? `${nomeAtual} ${sobrenomeAtual}`.trim() : nomeAtual;
+          
+          // Atualizar perfil sem alterar CPF, nome ou sobrenome
+          // Se foto_perfil não foi enviada (undefined), não atualizar o campo
+          // Se for null, remover foto
+          const updateFields = foto_perfil !== undefined
+            ? `nome_completo = ?, endereco = ?, cep = ?, telefone = ?, estado_civil = ?, ocupacao_id = ?, foto_perfil = ?, perfil_completo = true, atualizado_em = CURRENT_TIMESTAMP`
+            : `nome_completo = ?, endereco = ?, cep = ?, telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, atualizado_em = CURRENT_TIMESTAMP`;
+          const params = foto_perfil !== undefined
+            ? [nomeCompletoGerado, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, foto_perfil, req.user.id]
+            : [nomeCompletoGerado, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id];
+          
+          db.run(`UPDATE usuarios SET ${updateFields} WHERE id = ?`, params,
           async function(err) {
             if (err) {
               console.error('Erro ao atualizar perfil no banco:', err);
@@ -507,6 +583,7 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
             }
           }
         );
+        });
       }
     } else {
       // Usuário não tem CPF ainda, validar e salvar
@@ -537,13 +614,29 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
         }
 
         function atualizarPerfilComCPF() {
-          // Atualizar perfil com CPF
-          db.run(`UPDATE usuarios SET 
-                  nome_completo = ?, cpf = ?, endereco = ?, cep = ?, 
-                  telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, 
-                  atualizado_em = CURRENT_TIMESTAMP
-                  WHERE id = ?`,
-            [nome_completo, cpf, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id],
+          // Buscar nome e sobrenome atuais do banco para gerar nome_completo
+          db.get('SELECT nome, sobrenome FROM usuarios WHERE id = ?', [req.user.id], (err, usuarioAtual) => {
+            if (err) {
+              console.error('Erro ao buscar nome e sobrenome:', err);
+              return res.status(500).json({ erro: 'Erro ao buscar dados do usuário' });
+            }
+            
+            // Gerar nome_completo a partir do nome e sobrenome (usar os valores do banco, não do body)
+            const nomeAtual = usuarioAtual?.nome || '';
+            const sobrenomeAtual = usuarioAtual?.sobrenome || '';
+            const nomeCompletoGerado = sobrenomeAtual ? `${nomeAtual} ${sobrenomeAtual}`.trim() : nomeAtual;
+            
+            // Atualizar perfil com CPF
+            // Se foto_perfil não foi enviada (undefined), não atualizar o campo
+            // Se for null, remover foto
+            const updateFields = foto_perfil !== undefined
+              ? `nome_completo = ?, cpf = ?, endereco = ?, cep = ?, telefone = ?, estado_civil = ?, ocupacao_id = ?, foto_perfil = ?, perfil_completo = true, atualizado_em = CURRENT_TIMESTAMP`
+              : `nome_completo = ?, cpf = ?, endereco = ?, cep = ?, telefone = ?, estado_civil = ?, ocupacao_id = ?, perfil_completo = true, atualizado_em = CURRENT_TIMESTAMP`;
+            const params = foto_perfil !== undefined
+              ? [nomeCompletoGerado, cpf, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, foto_perfil, req.user.id]
+              : [nomeCompletoGerado, cpf, endereco || null, cep || null, telefone, estado_civil, ocupacao_id || null, req.user.id];
+          
+          db.run(`UPDATE usuarios SET ${updateFields} WHERE id = ?`, params,
           async function(err) {
             if (err) {
               console.error('Erro ao atualizar perfil no banco (com CPF):', err);
@@ -626,6 +719,7 @@ app.put('/api/perfil/completo', authenticateToken, async (req, res) => {
             }
           }
         );
+        });
       }
     });
     }
@@ -955,7 +1049,7 @@ function processarFilhos(req, res, filhos) {
                       console.error('Erro ao gerar hash da senha:', err);
                       processados++;
                       if (processados === totalFilhos) {
-                        return res.json({ mensagem: 'Perfil atualizado com sucesso' });
+                        return res.json({ mensagem: 'Usuário atualizado com sucesso' });
                       }
                       return;
                     }
@@ -1072,6 +1166,39 @@ app.get('/api/usuarios/buscar', authenticateToken, (req, res) => {
     return;
   }
 
+  // Buscar por nome
+  const nome = req.query.nome;
+  if (nome !== undefined && nome !== null && nome !== '') {
+    const queryNome = 'SELECT id, nome, nome_completo, email, cpf, telefone FROM usuarios WHERE nome LIKE ? OR nome_completo LIKE ? LIMIT 10';
+    const nomeBusca = `%${nome}%`;
+    db.all(queryNome, [nomeBusca, nomeBusca], (err, rows) => {
+      if (err) {
+        console.error('Erro ao buscar por nome:', err);
+        return res.status(500).json({ erro: 'Erro ao buscar usuário' });
+      }
+
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({ erro: 'Nenhum usuário encontrado com este nome' });
+      }
+
+      // Filtrar o próprio usuário
+      const usuariosFiltrados = rows.filter(u => u.id != req.user.id);
+      
+      if (usuariosFiltrados.length === 0) {
+        return res.status(400).json({ erro: 'Não é possível vincular a si mesmo' });
+      }
+
+      // Se encontrar apenas um, retornar diretamente
+      if (usuariosFiltrados.length === 1) {
+        return res.json({ usuario: usuariosFiltrados[0] });
+      }
+
+      // Se encontrar múltiplos, retornar lista
+      return res.json({ usuarios: usuariosFiltrados });
+    });
+    return;
+  }
+
   // Validação para CPF ou email
   if (!cpf && !email) {
     return res.status(400).json({ erro: 'Informe CPF, email ou ID para buscar' });
@@ -1099,6 +1226,21 @@ app.get('/api/usuarios/buscar', authenticateToken, (req, res) => {
     }
 
     res.json({ usuario: row });
+  });
+});
+
+// Rota para buscar relacionamentos do usuário
+app.get('/api/relacionamentos', authenticateToken, (req, res) => {
+  db.all(`SELECT r.id, r.tipo, r.relacionado_id, u.nome, u.nome_completo, u.email, u.cpf
+          FROM relacionamentos r
+          LEFT JOIN usuarios u ON r.relacionado_id = u.id
+          WHERE r.usuario_id = ?`, [req.user.id], (err, relacionamentos) => {
+    if (err) {
+      console.error('Erro ao buscar relacionamentos:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar relacionamentos' });
+    }
+
+    res.json({ relacionamentos: relacionamentos || [] });
   });
 });
 
@@ -2870,6 +3012,41 @@ app.get('*', (req, res) => {
     return res.status(404).json({ erro: 'Endpoint não encontrado' });
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Rota para salvar localização (coordenadas)
+app.post('/api/perfil/localizacao', authenticateToken, (req, res) => {
+  const { latitude, longitude } = req.body;
+
+  if (!latitude || !longitude) {
+    return res.status(400).json({ erro: 'Latitude e longitude são obrigatórios' });
+  }
+
+  // Validar se são números válidos
+  const lat = parseFloat(latitude);
+  const lng = parseFloat(longitude);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    return res.status(400).json({ erro: 'Latitude e longitude devem ser números válidos' });
+  }
+
+  // Validar range de coordenadas (latitude: -90 a 90, longitude: -180 a 180)
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return res.status(400).json({ erro: 'Coordenadas inválidas' });
+  }
+
+  db.run(
+    'UPDATE usuarios SET latitude = ?, longitude = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?',
+    [lat, lng, req.user.id],
+    (err) => {
+      if (err) {
+        console.error('Erro ao salvar localização:', err);
+        return res.status(500).json({ erro: 'Erro ao salvar localização' });
+      }
+
+      res.json({ mensagem: 'Localização salva com sucesso', latitude: lat, longitude: lng });
+    }
+  );
 });
 
 app.listen(PORT, '0.0.0.0', () => {

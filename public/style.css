@@ -34,8 +34,8 @@
     
     /* Sombras Dark Theme */
     --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.03), inset 0 -1px 2px rgba(3, 7, 18, 0.45);
-    --shadow-card: 0 22px 48px rgba(3, 7, 18, 0.55), 0 6px 18px rgba(3, 7, 18, 0.4);
-    --shadow-card-hover: 0 26px 56px rgba(3, 7, 18, 0.62), 0 10px 24px rgba(3, 7, 18, 0.45);
+    --shadow-card: 0 16px 32px rgba(3, 7, 18, 0.35), 0 4px 12px rgba(3, 7, 18, 0.25);
+    --shadow-card-hover: 0 20px 40px rgba(3, 7, 18, 0.42), 0 8px 16px rgba(3, 7, 18, 0.32);
     --shadow-button: 0 14px 32px rgba(79, 156, 255, 0.32);
     --shadow-button-hover: 0 18px 40px rgba(79, 156, 255, 0.42);
     
@@ -71,10 +71,11 @@ body {
         linear-gradient(180deg, rgba(11, 17, 32, 0.45) 0%, rgba(12, 19, 36, 0.35) 35%, rgba(12, 19, 36, 0.25) 55%, rgba(12, 19, 36, 0.10) 80%, rgba(12, 19, 36, 0) 100%),
         radial-gradient(circle at 20% 20%, rgba(79, 156, 255, 0.15) 0%, transparent 55%),
         radial-gradient(circle at 80% 10%, rgba(255, 138, 60, 0.12) 0%, transparent 60%),
-        url('images/fundoarte.png');
-    background-size: 100% 100%, 140% 140%, 140% 140%, cover;
-    background-position: center, left top, right top, center 20%;
-    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+        url('images/fundoarte.png'),
+        var(--bg-primary);
+    background-size: 100% 100%, 140% 140%, 140% 140%, 80%, cover;
+    background-position: center, left top, right top, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
     background-attachment: scroll;
     color: var(--text-primary);
     min-height: 100vh;
@@ -84,14 +85,15 @@ body {
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     overflow-y: hidden;
-body.body-with-sidebar {
-    overflow-y: auto;
-}
     position: relative;
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+}
+
+body.body-with-sidebar {
+    overflow-y: auto;
 }
 
 /* Ajustes de largura para breakpoints mobile mais comuns */
@@ -102,9 +104,9 @@ body.body-with-sidebar {
     
     /* Ajustar background para mobile */
     body {
-        background-attachment: fixed;
-        background-size: 100% 100%, 120% 120%, 120% 120%, cover;
-        background-position: center, left top, right top, center 20%;
+        background-attachment: scroll;
+        background-size: 100% 100%, 120% 120%, 120% 120%, 80%, cover;
+        background-position: center, left top, right top, center, center;
     }
 }
 
@@ -157,6 +159,36 @@ body::after {
 body > * {
     position: relative;
     z-index: 1;
+}
+
+/* Overlay com blur e baixa opacidade na página de registro */
+body:has(#perfilCompletoForm[style*="display: block"]):not(:has(.with-sidebar))::after {
+    background: rgba(11, 18, 26, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+}
+
+/* Overlay com blur e 50% de opacidade na página de perfil (com sidebar) */
+body.body-with-sidebar::after {
+    background: rgba(11, 18, 26, 0.5);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+}
+
+/* (Removido) overlay de blur/opacidade na página de login */
+
+/* Reduzir opacidade da imagem de fundo na página de registro */
+body:has(#perfilCompletoForm[style*="display: block"]):not(:has(.with-sidebar)) {
+    background:
+        linear-gradient(180deg, rgba(11, 17, 32, 0.45) 0%, rgba(12, 19, 36, 0.35) 35%, rgba(12, 19, 36, 0.25) 55%, rgba(12, 19, 36, 0.10) 80%, rgba(12, 19, 36, 0) 100%),
+        radial-gradient(circle at 20% 20%, rgba(79, 156, 255, 0.15) 0%, transparent 55%),
+        radial-gradient(circle at 80% 10%, rgba(255, 138, 60, 0.12) 0%, transparent 60%),
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        url('images/fundoarte.png'),
+        var(--bg-primary);
+    background-size: 100% 100%, 140% 140%, 140% 140%, cover, 80%, cover;
+    background-position: center, left top, right top, center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 }
 
 /* Container */
@@ -249,8 +281,8 @@ body > * {
 
 /* Form Container */
 .form-container {
-    background: linear-gradient(180deg, rgba(17, 27, 47, 0.95) 0%, rgba(12, 19, 34, 0.98) 100%);
-    border-radius: 36px; /* Desktop: 36px, Mobile: 42px (aplicado na media query) */
+    background: linear-gradient(180deg, rgba(17, 27, 47, 0.40) 0%, rgba(12, 19, 34, 0.80) 100%);
+    border-radius: 16px;
     padding: var(--spacing-md);
     box-shadow: var(--shadow-card);
     width: 100%;
@@ -260,18 +292,18 @@ body > * {
     backdrop-filter: blur(14px);
 }
 
-/* Cantos levemente arredondados quando a janela de perfil está ativa - será sobrescrito pelo JavaScript */
+/* Cantos quadrados quando a janela de perfil está ativa */
 .container.with-sidebar .form-container:has(#profileSection.active),
 .container.with-sidebar .form-container:has(#profileSection[style*="display: block"]),
 .container.with-sidebar .form-container:has(#profileSection.active #perfilCompletoForm[style*="display: block"]),
 .container.with-sidebar .form-container:has(#profileSection.active #perfilCompletoForm:not([style*="display: none"])) {
-    border-radius: 10px;
+    border-radius: 0;
 }
 
-/* Regra adicional: quando profileSection está ativa, o form-container pai também deve ter cantos levemente arredondados */
+/* Regra adicional: quando profileSection está ativa, o form-container pai também deve ter cantos quadrados */
 body:has(#profileSection.active) .container.with-sidebar .form-container,
 body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form-container {
-    border-radius: 10px;
+    border-radius: 0;
 }
 
 /* Quando não logado (tela de login), form-container pode ter overflow hidden */
@@ -286,8 +318,8 @@ body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form
     overflow: visible !important;
     max-height: none !important;
     height: auto !important;
-    /* Aplicar cantos arredondados como padrão (36px desktop, 42px mobile) */
-    border-radius: 36px;
+    /* Cantos quadrados */
+    border-radius: 0;
 }
 
 /* Regras adicionais para garantir cantos quadrados - já cobertas pela regra acima */
@@ -309,20 +341,43 @@ body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form
     padding-bottom: var(--spacing-xs);
     padding-left: calc(var(--spacing-md) - 10px);
     padding-right: calc(var(--spacing-md) - 10px);
+    border-radius: 16px !important;
 }
 
 /* Quando mostrar formulário de registro, ajustar proporção */
 .container:not(.with-sidebar) .form-container:has(#perfilCompletoForm[style*="display: block"]) {
+    /* LARGURA - ajuste aqui (ex: 95%, 400px, calc(100% - 40px)) */
     width: calc(var(--app-width) + 20px);
     max-width: calc(var(--app-width) + 20px);
+    
+    /* ESPAÇAMENTO INTERNO - ajuste aqui (ex: 20px, 24px, 30px) */
     padding: var(--spacing-md);
-    max-height: 75vh;
-    overflow-y: hidden;
+    
+    /* ALTURA MÁXIMA - ajuste aqui (ex: 85vh, 95vh, 100vh) */
+    max-height: 100vh;
+    
+    /* ALTURA MÍNIMA - ajuste aqui se quiser (ex: 500px, 600px) */
+    min-height: auto;
+    
+    overflow-y: auto;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    top: 48%;
-    transform: translate(-50%, -50%);
+    top: 150px;
+    left: 0;
+    transform: none;
+    position: fixed;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE e Edge */
+}
+
+/* Esconder scrollbar no Chrome, Safari e Opera */
+.container:not(.with-sidebar) .form-container:has(#perfilCompletoForm[style*="display: block"])::-webkit-scrollbar {
+    display: none;
 }
 
 /* Remover overflow do form interno quando estiver no container com scroll */
@@ -396,7 +451,7 @@ body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form
 @media (max-width: 480px) {
     body {
         background-size: 100% 100%, 120% 120%, 120% 120%, cover;
-        background-position: center bottom, center top, top center, center 20%;
+        background-position: center bottom, center top, top center, center;
     }
 
     .container:not(.with-sidebar) .form-container {
@@ -406,7 +461,7 @@ body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form
         padding: calc(var(--spacing-md) - 6px);
         padding-top: calc(var(--spacing-xs) + 2px);
         padding-bottom: calc(var(--spacing-xs) + 2px);
-        border-radius: 42px;
+        border-radius: 16px;
     }
     
     /* Ajuste para formulário de registro em mobile */
@@ -414,7 +469,7 @@ body:has(#profileSection[style*="display: block"]) .container.with-sidebar .form
         width: calc(100vw - 24px);
         max-width: calc(100vw - 24px);
         max-height: 85vh;
-        border-radius: 42px;
+        border-radius: 0;
     }
     
     /* Quando o formulário de edição de perfil está visível dentro da janela de perfil (mobile), aplicar cantos quadrados */
@@ -495,7 +550,7 @@ h4 {
     scrollbar-color: rgba(79, 156, 255, 0.6) rgba(17, 27, 47, 0.3);
 }
 
-/* Janela de Perfil - Estilo específico com cantos levemente arredondados */
+/* Janela de Perfil - Estilo específico com cantos quadrados */
 #profileSection.active,
 #profileSection[style*="display: block"] {
     position: relative;
@@ -507,8 +562,8 @@ h4 {
     margin-right: -10px;
     scrollbar-width: thin;
     scrollbar-color: rgba(79, 156, 255, 0.6) rgba(17, 27, 47, 0.3);
-    /* Cantos levemente arredondados (10px) - será sobrescrito pelo JavaScript */
-    border-radius: 10px;
+    /* Cantos quadrados */
+    border-radius: 0;
     background: linear-gradient(180deg, rgba(17, 27, 47, 0.95) 0%, rgba(12, 19, 34, 0.98) 100%) !important;
     box-shadow: var(--shadow-card) !important;
     border: 1px solid rgba(79, 156, 255, 0.15) !important;
@@ -670,7 +725,7 @@ h4 {
     backdrop-filter: none;
     position: relative;
     max-height: 60vh;
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: hidden;
     margin-right: -20px;
     padding-right: 20px;
@@ -959,17 +1014,6 @@ label {
     filter: blur(12px);
 }
 
-.input-wrapper::before {
-    content: '';
-    position: absolute;
-    left: 28px;
-    top: 4px;
-    bottom: 4px;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.28);
-    border-radius: 1px;
-    pointer-events: none;
-}
 
 .input-icon {
     position: absolute;
@@ -1351,6 +1395,7 @@ textarea {
     transform: translateY(0);
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     opacity: 1;
+    align-content: center;
 }
 
 /* Classe para esconder a barra quando não está rolando */
@@ -1365,6 +1410,7 @@ textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    align-content: center;
     text-decoration: none;
     color: var(--text-light);
     flex: 1;
@@ -1375,16 +1421,19 @@ textarea {
     border-radius: var(--radius-md);
     -webkit-tap-highlight-color: transparent;
     gap: 4px;
+    text-align: center;
 }
 
 .nav-icon {
     width: 24px;
     height: 24px;
+    margin: 0 auto;
     margin-bottom: 0;
     transition: all 0.3s ease;
     display: block;
     flex-shrink: 0;
     color: inherit;
+    line-height: 1;
 }
 
 .nav-label {
@@ -1408,6 +1457,7 @@ textarea {
     transform: scale(1.15);
     filter: brightness(1.3);
     color: var(--accent-orange);
+    margin: 0 auto;
 }
 
 .nav-item.active .nav-label {
@@ -1469,6 +1519,7 @@ textarea {
     .nav-icon {
         width: 26px;
         height: 26px;
+        margin: 0 auto;
     }
 }
 
@@ -1588,6 +1639,46 @@ textarea {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   INÍCIO - SOBRESCREVER CORES DAS JANELAS/TABS
+   ============================================ */
+/* Containers das janelas nas abas do Início */
+#tabContentProgramacoesAprovadas > div,
+#tabContentProgramacoesPassadas > div,
+#tabContentAniversariantes > div,
+#tabContentMinhasSolicitacoes > div {
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-card) !important;
+}
+
+/* Cabeçalhos das janelas (faixa com título e contador) */
+#tabContentProgramacoesAprovadas > div > div:first-child,
+#tabContentProgramacoesPassadas > div > div:first-child,
+#tabContentAniversariantes > div > div:first-child,
+#tabContentMinhasSolicitacoes > div > div:first-child {
+    border-bottom: 2px solid rgba(79, 156, 255, 0.5) !important; /* usa acento azul */
+}
+
+/* Contadores (badges) das janelas */
+#tabContentProgramacoesAprovadas #contadorProgramacoes,
+#tabContentProgramacoesPassadas #contadorProgramacoesPassadas,
+#tabContentAniversariantes #contadorAniversariantes,
+#tabContentMinhasSolicitacoes #contadorMinhasSolicitacoes {
+    background: rgba(79, 156, 255, 0.18) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid rgba(79, 156, 255, 0.35) !important;
+}
+
+/* Cartões/dias/listas dentro das janelas também no tema escuro */
+#tabContentProgramacoesAprovadas .item-list,
+#tabContentProgramacoesPassadas .item-list,
+#tabContentMinhasSolicitacoes .item-list {
+    background: var(--bg-card) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .item-list:hover {
@@ -1849,7 +1940,7 @@ textarea {
         padding-bottom: 0;
         align-items: flex-start;
         background-size: 100% 100%, 120% 120%, 120% 120%, cover;
-        background-position: center bottom, center top, center top -110px, center 20%;
+        background-position: center bottom, center top, center top -110px, center;
     }
     
     /* Container de login mantém fixo em mobile */
@@ -1861,7 +1952,7 @@ textarea {
         width: min(calc(var(--app-width) - 40px), calc(100vw - 32px));
         max-width: calc(var(--app-width) - 40px);
         padding: var(--spacing-lg);
-        border-radius: var(--radius-lg);
+        border-radius: 0;
     }
     
     /* Quando logado, aplica padding */
@@ -1934,3 +2025,47 @@ textarea {
 .p-2 { padding: var(--spacing-sm); }
 .p-3 { padding: var(--spacing-md); }
 .p-4 { padding: var(--spacing-lg); }
+
+/* Janela "Filtrar Programações" - redesign */
+#filtrosProgramacoes {
+    background: linear-gradient(180deg, rgba(17, 27, 47, 0.72) 0%, rgba(12, 19, 34, 0.78) 100%) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(79, 156, 255, 0.18) !important;
+    box-shadow: var(--shadow-card) !important;
+}
+
+#filtrosProgramacoes h3 {
+    color: var(--accent-blue) !important;
+    font-weight: 700;
+}
+
+#filtrosProgramacoes label {
+    color: var(--text-light) !important;
+}
+
+#filtrosProgramacoes input[type="text"],
+#filtrosProgramacoes select {
+    background: var(--bg-input) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-primary) !important;
+    border-radius: 8px !important;
+    outline: none;
+}
+
+#filtrosProgramacoes input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+#filtrosProgramacoes .btn-primary {
+    background: var(--primary) !important;
+    border: none !important;
+    box-shadow: var(--shadow-button) !important;
+}
+
+#filtrosProgramacoes .btn-secondary {
+    background: var(--secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(79, 156, 255, 0.18) !important;
+}

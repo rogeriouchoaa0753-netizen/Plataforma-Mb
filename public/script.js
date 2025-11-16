@@ -74,6 +74,7 @@ const btnSalvarPerfil = document.getElementById('btnSalvarPerfil');
 // Manter compatibilidade com código antigo
 const btnSalvarCadastro = btnCriarConta;
 let currentUserId = null;
+let fotoPerfilBase64 = null; // Variável global para armazenar foto em base64
 
 if (cadastroNomeInput) {
     cadastroNomeInput.addEventListener('input', () => {
@@ -114,6 +115,40 @@ if (cadastroEstadoCivilInput) {
         }
     });
 }
+// Event listener para mostrar/ocultar campo de quantidade de filhos no cadastro inicial
+const cadastroTemFilhosInput = document.getElementById('cadastroTemFilhos');
+const cadastroQuantidadeFilhosGroup = document.getElementById('cadastroQuantidadeFilhosGroup');
+if (cadastroTemFilhosInput && cadastroQuantidadeFilhosGroup) {
+    cadastroTemFilhosInput.addEventListener('change', () => {
+        validarFormularioCadastro();
+        if (cadastroTemFilhosInput.value === 'sim') {
+            cadastroQuantidadeFilhosGroup.style.display = 'block';
+        } else {
+            cadastroQuantidadeFilhosGroup.style.display = 'none';
+            const cadastroQuantidadeFilhos = document.getElementById('cadastroQuantidadeFilhos');
+            if (cadastroQuantidadeFilhos) {
+                cadastroQuantidadeFilhos.value = '';
+            }
+        }
+    });
+}
+// Event listeners para os novos campos do cadastro inicial
+const cadastroEnderecoInput = document.getElementById('cadastroEndereco');
+if (cadastroEnderecoInput) {
+    cadastroEnderecoInput.addEventListener('input', validarFormularioCadastro);
+}
+const cadastroTelefoneInput = document.getElementById('cadastroTelefone');
+if (cadastroTelefoneInput) {
+    cadastroTelefoneInput.addEventListener('input', validarFormularioCadastro);
+}
+const cadastroCepInput = document.getElementById('cadastroCep');
+if (cadastroCepInput) {
+    cadastroCepInput.addEventListener('input', validarFormularioCadastro);
+}
+const cadastroQuantidadeFilhosInput = document.getElementById('cadastroQuantidadeFilhos');
+if (cadastroQuantidadeFilhosInput) {
+    cadastroQuantidadeFilhosInput.addEventListener('change', validarFormularioCadastro);
+}
 if (cadastroNomeCompletoInput) cadastroNomeCompletoInput.addEventListener('input', () => {
     cadastroNomeInput.value = cadastroNomeCompletoInput.value;
     // Email será gerado apenas quando finalizar o sobrenome
@@ -149,6 +184,25 @@ function fecharModalForms() {
 
 
 // Verificar se já está logado
+// Função para mostrar loading
+function mostrarLoading() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'flex';
+    }
+}
+
+// Função para esconder loading
+function esconderLoading() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+    }
+}
+
+// Mostrar loading imediatamente quando o script carregar
+mostrarLoading();
+
 window.addEventListener('DOMContentLoaded', () => {
     restaurarCredenciaisSalvas();
     configurarPersistenciaRememberMe();
@@ -169,7 +223,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     if (token) {
-        verificarToken(token);
+        verificarToken(token).finally(() => {
+            // Esconder loading após verificar token
+            setTimeout(() => esconderLoading(), 300);
+        });
     } else {
         // Se não estiver logado, restaurar última tela (login ou registro)
         if (secaoSalva === 'registro') {
@@ -177,6 +234,8 @@ window.addEventListener('DOMContentLoaded', () => {
         } else {
             mostrarFormularioLogin();
         }
+        // Esconder loading após restaurar tela
+        setTimeout(() => esconderLoading(), 300);
     }
     
     // Verificar periodicamente se o sidebar está visível quando logado e esconder formulários
@@ -216,13 +275,17 @@ function mostrarElementosLogin() {
     const loginSocial = document.getElementById('loginSocial');
     
     if (loginHero) {
-        loginHero.style.display = 'flex';
-        loginHero.style.visibility = 'visible';
+        // Remover atributo style inline se existir e sobrescrever com !important
+        loginHero.removeAttribute('style');
+        loginHero.style.setProperty('display', 'flex', 'important');
+        loginHero.style.setProperty('visibility', 'visible', 'important');
     }
     
     if (loginSocial) {
-        loginSocial.style.display = 'flex';
-        loginSocial.style.visibility = 'visible';
+        // Remover atributo style inline se existir e sobrescrever com !important
+        loginSocial.removeAttribute('style');
+        loginSocial.style.setProperty('display', 'flex', 'important');
+        loginSocial.style.setProperty('visibility', 'visible', 'important');
     }
 }
 
@@ -277,8 +340,10 @@ function mostrarFormularioLogin() {
     
     // MOSTRAR formulário de login (garantir que esteja visível)
     if (loginForm) {
-        loginForm.style.display = 'block';
-        loginForm.style.visibility = 'visible';
+        // Remover atributo style inline se existir e sobrescrever com !important
+        loginForm.removeAttribute('style');
+        loginForm.style.setProperty('display', 'block', 'important');
+        loginForm.style.setProperty('visibility', 'visible', 'important');
         loginForm.classList.add('active');
     }
     
@@ -300,6 +365,13 @@ function mostrarFormularioLogin() {
     if (perfilCompletoForm) {
         perfilCompletoForm.style.display = 'none';
         perfilCompletoForm.style.visibility = 'hidden';
+    }
+    
+    // Garantir que a seção de Nome/Sobrenome do cadastro não apareça no login
+    const cadastroNomeSection = document.getElementById('cadastroNomeSection');
+    if (cadastroNomeSection) {
+        cadastroNomeSection.style.display = 'none';
+        cadastroNomeSection.style.visibility = 'hidden';
     }
     
     if (cadastroCredenciaisSection) {
@@ -350,14 +422,7 @@ function mostrarFormularioLogin() {
         }
     }, 50);
     
-    // LIMPAR OUTROS ELEMENTOS
-    const cpfInput = document.getElementById('cpf');
-    if (cpfInput) {
-        cpfInput.value = '';
-        cpfInput.readOnly = true;
-        cpfInput.style.backgroundColor = '#f5f5f5';
-        cpfInput.style.cursor = 'not-allowed';
-    }
+    // CPF removido do formulário - agora exibido apenas na área informativa
     
     if (sidebarMenu) {
         sidebarMenu.style.display = 'none';
@@ -366,7 +431,6 @@ function mostrarFormularioLogin() {
     document.body.classList.remove('body-with-sidebar');
     document.body.style.paddingBottom = '20px';
 }
-
 function ativarCadastroCompleto() {
     esconderFormulariosLogin();
     limparMensagem();
@@ -429,6 +493,8 @@ function ativarCadastroCompleto() {
         cadastroCredenciaisSection.style.setProperty('display', 'block', 'important');
         cadastroCredenciaisSection.style.setProperty('visibility', 'visible', 'important');
     }
+    // Carregar ocupações e igrejas para o formulário de cadastro
+    carregarOcupacoesEIgrejasCadastro();
     if (perfilDadosSection) {
         perfilDadosSection.style.display = 'none';
     }
@@ -447,24 +513,9 @@ function ativarCadastroCompleto() {
     // Validar formulário após ativar
     setTimeout(validarFormularioCadastro, 100);
 
-    const cpfInput = document.getElementById('cpf');
-    if (cpfInput) {
-        cpfInput.value = '';
-        cpfInput.removeAttribute('readonly');
-        cpfInput.style.backgroundColor = 'white';
-        cpfInput.style.cursor = 'text';
-    }
-
-    const perfilOcupacao = document.getElementById('perfilOcupacao');
-    if (perfilOcupacao) perfilOcupacao.value = '';
-    const perfilIgreja = document.getElementById('perfilIgreja');
-    if (perfilIgreja) perfilIgreja.value = '';
-    const estadoCivil = document.getElementById('estadoCivil');
-    if (estadoCivil) estadoCivil.value = '';
-    const temFilhos = document.getElementById('temFilhos');
-    if (temFilhos) temFilhos.value = '';
-    const quantidadeFilhos = document.getElementById('quantidadeFilhos');
-    if (quantidadeFilhos) quantidadeFilhos.value = '';
+    // CPF removido do formulário - agora exibido apenas na área informativa
+    // Ocupação e Igreja removidos do formulário de perfil - agora estão apenas no primeiro registro
+    // Endereço, CEP, Telefone, Estado Civil e Tem Filhos removidos - agora estão apenas no primeiro registro
 
     const quantidadeFilhosGroup = document.getElementById('quantidadeFilhosGroup');
     if (quantidadeFilhosGroup) quantidadeFilhosGroup.style.display = 'none';
@@ -493,10 +544,7 @@ function ativarCadastroCompleto() {
     atualizarEmailInstitucional();
 
     pageTitle.textContent = 'Cadastro';
-    const perfilFormTitulo = document.getElementById('perfilFormTitulo');
-    if (perfilFormTitulo) {
-        perfilFormTitulo.textContent = 'Preencha seus dados para criar sua conta';
-    }
+    // perfilFormTitulo removido
 
     carregarOcupacoesEIgrejasPerfil();
 
@@ -586,16 +634,25 @@ function validarFormularioCadastro() {
     const dataNascimento = cadastroDataNascimentoInput?.value || '';
     const estadoCivil = cadastroEstadoCivilInput?.value || '';
     const dataSacamento = cadastroEstadoCivilInput?.value === 'casado' ? (cadastroDataSacamentoInput?.value || '') : '';
+    const endereco = document.getElementById('cadastroEndereco')?.value?.trim() || '';
+    const telefone = document.getElementById('cadastroTelefone')?.value?.replace(/\D/g, '') || '';
+    const temFilhos = document.getElementById('cadastroTemFilhos')?.value || '';
+    const quantidadeFilhos = document.getElementById('cadastroQuantidadeFilhos')?.value || '';
     
     // Validar se todos os campos obrigatórios estão preenchidos
     const nomeValido = nome.length >= 2;
     const sobrenomeValido = sobrenome.length >= 2;
     const dataNascimentoValida = dataNascimento.length > 0;
     const estadoCivilValido = estadoCivil.length > 0;
+    const dataSacamentoValida = estadoCivil !== 'casado' || dataSacamento.length > 0;
     const cpfValido = cpf.length === 11;
     const senhaValida = senha.length >= 6;
+    const enderecoValido = endereco.length > 0;
+    const telefoneValido = telefone.length >= 10;
+    const temFilhosValido = temFilhos.length > 0;
+    const quantidadeFilhosValida = temFilhos !== 'sim' || quantidadeFilhos.length > 0;
     
-    const formularioValido = nomeValido && sobrenomeValido && cpfValido && senhaValida && dataNascimentoValida && estadoCivilValido;
+    const formularioValido = nomeValido && sobrenomeValido && cpfValido && senhaValida && dataNascimentoValida && estadoCivilValido && dataSacamentoValida && enderecoValido && telefoneValido && temFilhosValido && quantidadeFilhosValida;
     
     // Habilitar/desabilitar botão
     if (formularioValido) {
@@ -662,7 +719,40 @@ async function processarCadastroInicial() {
         return;
     }
 
+    // Validar endereço
+    const endereco = document.getElementById('cadastroEndereco')?.value.trim() || '';
+    if (!endereco) {
+        mostrarMensagem('Informe o endereço.', 'error');
+        return;
+    }
+
+    // Validar telefone
+    const telefone = document.getElementById('cadastroTelefone')?.value.replace(/\D/g, '') || '';
+    if (!telefone) {
+        mostrarMensagem('Informe o telefone para contato.', 'error');
+        return;
+    }
+
+    // Validar tem filhos
+    const temFilhos = document.getElementById('cadastroTemFilhos')?.value || '';
+    if (!temFilhos) {
+        mostrarMensagem('Informe se tem filhos.', 'error');
+        return;
+    }
+
+    // Validar quantidade de filhos se tiver filhos
+    const quantidadeFilhos = document.getElementById('cadastroQuantidadeFilhos')?.value || '';
+    if (temFilhos === 'sim' && !quantidadeFilhos) {
+        mostrarMensagem('Informe a quantidade de filhos.', 'error');
+        return;
+    }
+
     const nomeCompleto = `${primeiroNome} ${sobrenome}`.replace(/\s+/g, ' ').trim();
+    // Obter ocupação e igreja do cadastro
+    const ocupacao_id = document.getElementById('cadastroOcupacao')?.value || null;
+    const igreja_id = document.getElementById('cadastroIgreja')?.value || null;
+    const cep = document.getElementById('cadastroCep')?.value.replace(/\D/g, '') || null;
+    
     const payload = {
         nome: primeiroNome, // Enviar apenas o primeiro nome
         sobrenome: sobrenome, // Enviar sobrenome separado
@@ -672,7 +762,13 @@ async function processarCadastroInicial() {
         cpf: cpfCadastro,
         data_nascimento: dataNascimento,
         estado_civil: estadoCivil,
-        data_sacamento: estadoCivil === 'casado' ? dataSacamento : null
+        data_sacamento: estadoCivil === 'casado' ? dataSacamento : null,
+        ocupacao_id: ocupacao_id || null,
+        igreja_id: igreja_id || null,
+        endereco: endereco,
+        cep: cep || null,
+        telefone: telefone
+        // tem_filhos e quantidade_filhos são gerenciados através da tabela de relacionamentos (filhos)
     };
 
     try {
@@ -830,13 +926,14 @@ function configurarItensMenu(usuarioId) {
         }
     }
 }
-
 // Restaurar seção salva
 async function restaurarSecaoSalva() {
     // Primeiro, carregar dados do usuário para ter currentUserId
     try {
+        mostrarLoading();
         const token = localStorage.getItem('token');
         if (!token) {
+            esconderLoading();
             return; // Não está logado, deixar formulário de login visível
         }
         
@@ -852,10 +949,24 @@ async function restaurarSecaoSalva() {
         });
 
         if (!response.ok) {
+            // Se o token for inválido (401), remover e mostrar login
+            if (response.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('secaoAtual');
-            // Se o token for inválido, mostrar login
-            mostrarFormularioLogin();
+                mostrarFormularioLogin();
+            } else {
+                // Para outros erros, tentar continuar mesmo assim
+                console.warn('Erro ao buscar perfil, mas tentando continuar:', response.status);
+                // Tentar carregar perfil mesmo com erro
+                try {
+                    await carregarPerfilCompleto();
+                } catch (err) {
+                    console.error('Erro ao carregar perfil após erro na API:', err);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('secaoAtual');
+                    mostrarFormularioLogin();
+                }
+            }
             return;
         }
 
@@ -871,12 +982,14 @@ async function restaurarSecaoSalva() {
 
         const secaoSalva = localStorage.getItem('secaoAtual');
         if (!secaoSalva) {
-            // Se não há seção salva, mostrar perfil padrão
+            // Se não há seção salva, salvar 'perfil' como padrão e mostrar perfil
+            salvarSecaoAtual('perfil');
             if (!data.usuario.perfil_completo) {
                 mostrarFormularioPerfilCompleto(data.usuario, data.relacionamentos || []);
             } else {
                 mostrarPerfilCompleto(data);
             }
+            // Não precisa chamar mostrarSecaoPerfil() aqui pois já é chamado dentro das funções acima
             return;
         }
 
@@ -886,11 +999,13 @@ async function restaurarSecaoSalva() {
                 await mostrarSecaoInicio();
                 break;
             case 'perfil':
+                // Sempre mostrar perfil se a seção salva for 'perfil'
                 if (!data.usuario.perfil_completo) {
                     mostrarFormularioPerfilCompleto(data.usuario, data.relacionamentos || []);
                 } else {
                     mostrarPerfilCompleto(data);
                 }
+                // Não precisa chamar mostrarSecaoPerfil() aqui pois já é chamado dentro das funções acima
                 break;
             case 'editar':
                 mostrarFormularioPerfilCompleto(data.usuario, data.relacionamentos || []);
@@ -910,6 +1025,8 @@ async function restaurarSecaoSalva() {
                 }
                 break;
             default:
+                // Se a seção salva for desconhecida, salvar 'perfil' e mostrar perfil
+                salvarSecaoAtual('perfil');
                 if (!data.usuario.perfil_completo) {
                     mostrarFormularioPerfilCompleto(data.usuario, data.relacionamentos || []);
                 } else {
@@ -917,8 +1034,43 @@ async function restaurarSecaoSalva() {
                 }
         }
     } catch (error) {
+        console.error('Erro ao restaurar seção:', error);
+        // Se houver erro, mas o token existe, tentar carregar o perfil mesmo assim
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                console.log('Tentando carregar perfil após erro na restauração...');
+                // Garantir que formulários estejam escondidos
+                esconderFormulariosLogin();
+                garantirSidebarVisivel();
+                // Tentar carregar perfil diretamente
+                await carregarPerfilCompleto();
+            } catch (err) {
+                console.error('Erro ao carregar perfil após erro na restauração:', err);
+                // Só remover token se for erro 401 (não autorizado)
+                if (err.message && err.message.includes('401')) {
         localStorage.removeItem('token');
         localStorage.removeItem('secaoAtual');
+                    mostrarFormularioLogin();
+                } else {
+                    // Para outros erros, tentar mostrar perfil mesmo assim
+                    console.warn('Erro não crítico, tentando continuar...');
+                    salvarSecaoAtual('perfil');
+                    // Tentar carregar perfil novamente
+                    try {
+                        await carregarPerfilCompleto();
+                    } catch (e) {
+                        console.error('Erro ao tentar carregar perfil:', e);
+                        mostrarSecaoPerfil();
+                    }
+                }
+            }
+        } else {
+            localStorage.removeItem('secaoAtual');
+            mostrarFormularioLogin();
+        }
+    } finally {
+        setTimeout(() => esconderLoading(), 300);
     }
 }
 
@@ -976,6 +1128,9 @@ loginFormElement.addEventListener('submit', async (e) => {
         }
 
         if (response.ok) {
+            // Mostrar loading imediatamente após login bem-sucedido
+            mostrarLoading();
+            
             localStorage.setItem('token', data.token);
             currentUserId = data.usuario.id;
             salvarSecaoAtual('perfil'); // Salvar seção padrão após login
@@ -1007,6 +1162,10 @@ loginFormElement.addEventListener('submit', async (e) => {
             
             setTimeout(async () => {
                 await carregarPerfilCompleto();
+                // Mostrar seção de perfil após carregar dados
+                mostrarSecaoPerfil();
+                // Esconder loading apenas após o perfil estar completamente carregado
+                setTimeout(() => esconderLoading(), 300);
             }, 1500);
         } else {
             mostrarMensagem(data.erro || 'Erro ao fazer login', 'error');
@@ -1050,6 +1209,47 @@ loginFormElement.addEventListener('submit', async (e) => {
         mostrarMensagem(mensagemErro, 'error');
     }
 });
+
+// Carregar ocupações e igrejas para o formulário de cadastro inicial
+async function carregarOcupacoesEIgrejasCadastro() {
+    try {
+        // Carregar ocupações
+        const ocupResponse = await fetch(`${API_URL}/ocupacoes`);
+        const ocupData = await ocupResponse.json();
+        
+        if (ocupResponse.ok && ocupData.ocupacoes) {
+            const selectOcupacao = document.getElementById('cadastroOcupacao');
+            if (selectOcupacao) {
+                selectOcupacao.innerHTML = '<option value="">Selecione uma ocupação...</option>';
+                ocupData.ocupacoes.forEach(ocupacao => {
+                    const option = document.createElement('option');
+                    option.value = ocupacao.id;
+                    option.textContent = ocupacao.nome;
+                    selectOcupacao.appendChild(option);
+                });
+            }
+        }
+
+        // Carregar igrejas
+        const igrejaResponse = await fetch(`${API_URL}/igrejas-publicas`);
+        const igrejaData = await igrejaResponse.json();
+        
+        if (igrejaResponse.ok && igrejaData.igrejas) {
+            const selectIgreja = document.getElementById('cadastroIgreja');
+            if (selectIgreja) {
+                selectIgreja.innerHTML = '<option value="">Selecione uma igreja...</option>';
+                igrejaData.igrejas.forEach(igreja => {
+                    const option = document.createElement('option');
+                    option.value = igreja.id;
+                    option.textContent = igreja.nome;
+                    selectIgreja.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar ocupações e igrejas para cadastro:', error);
+    }
+}
 
 // Carregar ocupações e igrejas para o formulário de perfil
 async function carregarOcupacoesEIgrejasPerfil(ocupacaoIdSelecionada = null, igrejaIdSelecionada = null) {
@@ -1222,7 +1422,6 @@ async function carregarDadosParaEdicao() {
         mostrarMensagem('Erro ao carregar dados', 'error');
     }
 }
-
 // Configurar botão Editar Perfil
 document.addEventListener('DOMContentLoaded', () => {
     const btnEditarPerfil = document.getElementById('btnEditarPerfil');
@@ -1275,21 +1474,33 @@ document.addEventListener('submit', async (e) => {
             return;
         }
 
-        const nome_completo = document.getElementById('nomeCompleto')?.value.trim();
-        const cpfInput = document.getElementById('cpf');
-        // Se CPF estiver readonly, não enviar (já está cadastrado)
-        const cpf = cpfInput?.readOnly ? null : cpfInput?.value.replace(/\D/g, '');
-        const endereco = document.getElementById('endereco')?.value.trim();
-        const cep = document.getElementById('cep')?.value.replace(/\D/g, '');
-        const telefone = document.getElementById('telefone')?.value.replace(/\D/g, '');
-        const estado_civil = document.getElementById('estadoCivil')?.value;
-        const ocupacao_id = document.getElementById('perfilOcupacao')?.value;
-        const igreja_id = document.getElementById('perfilIgreja')?.value;
-        const temFilhos = document.getElementById('temFilhos')?.value;
+        // Nome Completo removido - já é preenchido no cadastro inicial (nome + sobrenome)
+        // CPF removido - agora exibido apenas na área informativa ao lado da foto
+        // Endereço, CEP, Telefone, Estado Civil e Tem Filhos removidos - agora estão apenas no primeiro registro
+        // Buscar dados atuais do perfil para enviar junto com a foto (se houver alteração)
+        const perfilResponse = await fetch(`${API_URL}/perfil`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!perfilResponse.ok) {
+            mostrarMensagem('Erro ao buscar dados do perfil.', 'error');
+            return;
+        }
+        
+        const perfilData = await perfilResponse.json();
+        const usuarioAtual = perfilData.usuario;
+        
+        const endereco = usuarioAtual.endereco || '';
+        const cep = usuarioAtual.cep || null;
+        const telefone = usuarioAtual.telefone || '';
+        const estado_civil = usuarioAtual.estado_civil || null;
+        const temFilhos = usuarioAtual.tem_filhos ? 'sim' : 'nao';
 
         // Validação básica
-        if (!nome_completo || !endereco || !telefone) {
-            mostrarMensagem('Preencha todos os campos obrigatórios (Nome completo, Endereço e Telefone)', 'error');
+        if (!endereco || !telefone) {
+            mostrarMensagem('Preencha todos os campos obrigatórios (Endereço e Telefone)', 'error');
             return;
         }
 
@@ -1381,15 +1592,24 @@ document.addEventListener('submit', async (e) => {
                 return;
             }
 
+            // Se fotoPerfilBase64 for string vazia, enviar null para remover foto
+            // Se for null, não enviar (undefined) para manter foto existente
+            // Se tiver valor, enviar a foto
+            let fotoPerfilParaEnviar = undefined;
+            if (fotoPerfilBase64 === '') {
+                fotoPerfilParaEnviar = null; // Remover foto
+            } else if (fotoPerfilBase64) {
+                fotoPerfilParaEnviar = fotoPerfilBase64; // Nova foto ou foto existente
+            }
+            
+            // Ocupação e Igreja removidos - agora estão apenas no primeiro registro
+            // Nome Completo removido - já é preenchido no cadastro inicial (nome + sobrenome)
             const bodyData = { 
-                nome_completo, 
-                cpf, 
                 endereco, 
                 cep, 
                 telefone, 
                 estado_civil, 
-                ocupacao_id: ocupacao_id ? parseInt(ocupacao_id) : null, 
-                igreja_id: igreja_id ? parseInt(igreja_id) : null, 
+                ...(fotoPerfilParaEnviar !== undefined && { foto_perfil: fotoPerfilParaEnviar }), // Incluir apenas se definido
                 filhos 
             };
             
@@ -1454,21 +1674,41 @@ document.addEventListener('submit', async (e) => {
     }
 });
 
+// Flag para garantir que a navegação só seja configurada uma vez
+let navegacaoMenuConfigurada = false;
+
 // Configurar navegação do menu
 function configurarNavegacaoMenu() {
-    // Remover listeners anteriores para evitar duplicação
-    document.querySelectorAll('.nav-item').forEach(item => {
-        // Clonar o elemento para remover listeners antigos
-        const newItem = item.cloneNode(true);
-        item.parentNode.replaceChild(newItem, item);
-        
-        newItem.addEventListener('click', async (e) => {
+    // Se já foi configurada, não configurar novamente
+    if (navegacaoMenuConfigurada) {
+        return;
+    }
+    
+    // Usar event delegation no menu para evitar problemas com múltiplos listeners
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    if (!sidebarMenu) return;
+    
+    // Remover listener anterior se existir
+    sidebarMenu.removeEventListener('click', handleMenuClick);
+    
+    // Adicionar listener único usando event delegation
+    sidebarMenu.addEventListener('click', handleMenuClick);
+    
+    navegacaoMenuConfigurada = true;
+}
+
+// Handler único para cliques no menu
+async function handleMenuClick(e) {
+    const navItem = e.target.closest('.nav-item');
+    if (!navItem) return;
+    
             e.preventDefault();
-            const section = newItem.getAttribute('data-section');
+    const section = navItem.getAttribute('data-section');
+    if (!section) return;
             
             // Atualizar menu ativo
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
-            newItem.classList.add('active');
+    navItem.classList.add('active');
             
             // Salvar seção atual
             salvarSecaoAtual(section);
@@ -1491,8 +1731,6 @@ function configurarNavegacaoMenu() {
                     fazerLogout();
                     break;
             }
-        });
-    });
 }
 
 // Mostrar seção de perfil
@@ -1507,19 +1745,48 @@ function mostrarSecaoPerfil() {
     
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
-    if (perfilCompletoForm) {
-        perfilCompletoForm.style.display = 'none';
-        // fecharModalForms();
-    }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
     
-    // Mostrar menu e seção de perfil
-    if (sidebarMenu) sidebarMenu.style.display = 'block';
-    if (profileSection) {
-        profileSection.style.display = 'block';
-        profileSection.classList.add('active');
+    // Sempre mostrar perfilDadosSection diretamente (sem mostrar profileSection temporariamente)
+    const perfilDadosSection = document.getElementById('perfilDadosSection');
+    const cadastroCredenciaisSection = document.getElementById('cadastroCredenciaisSection');
+    const cadastroNomeSection = document.getElementById('cadastroNomeSection');
+    
+    // Mostrar perfilDadosSection imediatamente
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.setProperty('display', 'block', 'important');
+        perfilCompletoForm.style.setProperty('visibility', 'visible', 'important');
     }
+    if (perfilDadosSection) {
+        perfilDadosSection.style.setProperty('display', 'block', 'important');
+        perfilDadosSection.style.setProperty('visibility', 'visible', 'important');
+    }
+    if (cadastroCredenciaisSection) {
+        cadastroCredenciaisSection.style.display = 'none';
+    }
+    // Garantir que o bloco de Nome/Sobrenome do fluxo de registro não apareça no perfil
+    if (cadastroNomeSection) {
+        cadastroNomeSection.style.display = 'none';
+        cadastroNomeSection.style.visibility = 'hidden';
+    }
+    // Sempre esconder profileSection antiga (que usa userInfo)
+    if (profileSection) {
+        profileSection.style.display = 'none';
+    }
+    
+    // Verificar se os dados já foram carregados
+    const perfilNomeExibicao = document.getElementById('perfilNomeExibicao');
+    
+    // Se os dados ainda não foram carregados, carregar agora
+    if (!perfilNomeExibicao || perfilNomeExibicao.textContent === '-' || perfilNomeExibicao.textContent.trim() === '') {
+        // Carregar dados do perfil sem mostrar profileSection
+        console.log('Carregando dados do perfil...');
+        carregarPerfilCompleto();
+    }
+    
+    // Mostrar menu
+    if (sidebarMenu) sidebarMenu.style.display = 'block';
     if (pageTitle) pageTitle.textContent = 'Meu Perfil';
     
     // Adicionar classe with-sidebar ao container
@@ -1538,16 +1805,14 @@ function mostrarSecaoPerfil() {
     
     // Garantir que a navegação do menu esteja configurada
     configurarNavegacaoMenu();
-    
-    // SEMPRE recarrega dados atualizados do cadastro oficial
-    console.log('Carregando perfil com dados atualizados do cadastro oficial...');
-    carregarPerfilCompleto();
 }
 
 // Mostrar seção administrativa
 async function mostrarSecaoAdmin() {
+    mostrarLoading();
     if (currentUserId !== 1) {
         mostrarMensagem('Acesso negado. Apenas administradores podem acessar esta área.', 'error');
+        esconderLoading();
         return;
     }
     
@@ -1591,6 +1856,7 @@ async function mostrarSecaoAdmin() {
     configurarNavegacaoMenu();
     
     await carregarDadosAdmin();
+    setTimeout(() => esconderLoading(), 300);
 }
 // Carregar dados administrativos - SEMPRE busca dados atualizados do SQL
 // NÃO armazena dados localmente - sempre busca do banco de dados
@@ -1636,7 +1902,6 @@ async function carregarDadosAdmin() {
         mostrarMensagem('Erro ao conectar com o servidor', 'error');
     }
 }
-
 // Carregar opções de filtros
 async function carregarFiltros(usuarios) {
     const filtrosAdmin = document.getElementById('filtrosAdmin');
@@ -2666,8 +2931,10 @@ window.alterarOcupacao = async function(usuarioId, ocupacaoAtualId) {
 
 // Mostrar seção de configuração
 async function mostrarSecaoConfig() {
+    mostrarLoading();
     if (currentUserId !== 1) {
         mostrarMensagem('Acesso negado. Apenas administradores podem acessar esta área.', 'error');
+        esconderLoading();
         return;
     }
     
@@ -2719,6 +2986,7 @@ async function mostrarSecaoConfig() {
     
     // Configurar navegação de abas
     configurarNavegacaoAbas();
+    setTimeout(() => esconderLoading(), 300);
 }
 
 // Configurar navegação de abas
@@ -3167,10 +3435,27 @@ window.deletarAreaServico = async function(id) {
 
 // Logout
 function fazerLogout() {
+    // Resetar flag de navegação para permitir reconfiguração no próximo login
+    navegacaoMenuConfigurada = false;
+    
     localStorage.removeItem('token');
     localStorage.removeItem('secaoAtual');
     currentUserId = null;
     limparMensagem();
+    
+    // Resetar foto de perfil em memória e no UI para não vazar entre logins
+    try {
+        fotoPerfilBase64 = null;
+        const fotoPerfilImg = document.getElementById('fotoPerfilImg');
+        const fotoPerfilPlaceholder = document.getElementById('fotoPerfilPlaceholder');
+        if (fotoPerfilImg) {
+            fotoPerfilImg.src = '';
+            fotoPerfilImg.style.display = 'none';
+        }
+        if (fotoPerfilPlaceholder) {
+            fotoPerfilPlaceholder.style.display = 'flex';
+        }
+    } catch (e) { /* noop */ }
     
     // Esconder todas as outras seções
     if (perfilCompletoForm) {
@@ -3186,10 +3471,12 @@ function fazerLogout() {
     const container = document.querySelector('.container');
     if (container) container.classList.remove('with-sidebar');
     
+    // Remover classe do body para restaurar background da imagem
+    document.body.classList.remove('body-with-sidebar');
+    
     if (pageTitle) pageTitle.textContent = 'Sistema de Login';
 
     restaurarCredenciaisSalvas();
-    document.body.classList.remove('body-with-sidebar');
     
     // MOSTRAR elementos da tela de login (logo, frase, ícones sociais) e formulário
     mostrarElementosLogin();
@@ -3276,6 +3563,7 @@ async function mostrarSecaoInicio() {
     
     // Configurar event listeners
     configurarEventListenersCalendario();
+    setTimeout(() => esconderLoading(), 300);
 }
 
 // Configurar navegação de abas de programações (similar ao configurarNavegacaoAbas)
@@ -6450,7 +6738,6 @@ async function processarSalvamentoProgramacao(titulo, descricao, data_evento, da
         mostrarMensagem('Erro ao conectar com o servidor', 'error');
     }
 }
-
 // Deletar programação (admin)
 window.deletarProgramacao = async function(id) {
     if (!confirm('Tem certeza que deseja deletar esta programação?')) return;
@@ -6877,14 +7164,18 @@ async function verificarToken(token) {
     try {
         await restaurarSecaoSalva();
     } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('secaoAtual');
+        console.error('Erro ao verificar token:', error);
+        // Não remover o token imediatamente - deixar restaurarSecaoSalva lidar com isso
+        // Apenas esconder loading se houver erro crítico
+        esconderLoading();
     }
+    // O loading será escondido dentro de restaurarSecaoSalva
 }
-
 // Carregar perfil completo
 async function carregarPerfilCompleto() {
     try {
+        // Não mostrar loading aqui para evitar flash - a seção já está visível
+        // mostrarLoading();
         const token = localStorage.getItem('token');
         if (!token) {
             fazerLogout();
@@ -6893,6 +7184,18 @@ async function carregarPerfilCompleto() {
         
         // Garantir que formulários de login estejam escondidos
         esconderFormulariosLogin();
+        
+        // Garantir que perfilDadosSection esteja visível antes de carregar
+        const perfilDadosSection = document.getElementById('perfilDadosSection');
+        const perfilCompletoForm = document.getElementById('perfilCompletoForm');
+        if (perfilDadosSection) {
+            perfilDadosSection.style.setProperty('display', 'block', 'important');
+            perfilDadosSection.style.setProperty('visibility', 'visible', 'important');
+        }
+        if (perfilCompletoForm) {
+            perfilCompletoForm.style.setProperty('display', 'block', 'important');
+            perfilCompletoForm.style.setProperty('visibility', 'visible', 'important');
+        }
 
         // Adicionar timestamp para evitar cache e garantir dados atualizados do servidor
         const timestamp = new Date().getTime();
@@ -6923,20 +7226,43 @@ async function carregarPerfilCompleto() {
                 mostrarPerfilCompleto(data);
             }
         } else {
+            // Só fazer logout se for erro 401 (não autorizado)
             if (response.status === 401) {
+                console.warn('Token inválido (401), fazendo logout...');
                 fazerLogout();
             } else {
-                localStorage.removeItem('token');
+                // Para outros erros, não remover token - pode ser erro temporário do servidor
+                console.warn('Erro ao carregar perfil, mas mantendo token:', response.status);
+                // Tentar mostrar perfil mesmo assim
+                salvarSecaoAtual('perfil');
+                // Tentar mostrar seção de perfil (mesmo sem dados)
+                mostrarSecaoPerfil();
             }
         }
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
+        // Só remover token se for erro de autenticação
+        if (error.message && error.message.includes('401')) {
         localStorage.removeItem('token');
+            localStorage.removeItem('secaoAtual');
+        } else {
+            // Para outros erros, tentar mostrar perfil mesmo assim
+            console.warn('Erro não crítico ao carregar perfil, tentando continuar...');
+            salvarSecaoAtual('perfil');
+            // Tentar mostrar seção de perfil (mesmo sem dados)
+            mostrarSecaoPerfil();
+        }
+    } finally {
+        // Não esconder loading aqui porque não foi mostrado
+        // setTimeout(() => esconderLoading(), 300);
     }
 }
 
 // Mostrar formulário de perfil completo
 function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
+    // IMPORTANTE: Salvar a seção atual como 'perfil' para garantir que seja restaurada corretamente
+    salvarSecaoAtual('perfil');
+    
     esconderFormulariosLogin();
     
     // Esconder TODAS as outras seções primeiro
@@ -6953,16 +7279,11 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     
     perfilCompletoForm.style.display = 'block';
     abrirModalForm(perfilCompletoForm);
-    pageTitle.textContent = 'Complete seu Perfil';
-    const perfilFormTitulo = document.getElementById('perfilFormTitulo');
-    
+    if (pageTitle) pageTitle.textContent = 'Complete seu Perfil';
     // Aplicar cantos quadrados após mostrar o formulário
     setTimeout(() => {
         aplicarCantosQuadradosPerfil();
     }, 100);
-    if (perfilFormTitulo) {
-        perfilFormTitulo.textContent = 'Preencha seus dados para continuar';
-    }
     
     if (perfilCompletoFormElement) {
         perfilCompletoFormElement.dataset.mode = 'edicao';
@@ -6981,7 +7302,7 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
         btnSalvarPerfil.textContent = 'Salvar Perfil';
     }
     const relacionamentosSection = document.getElementById('relacionamentosSection');
-    if (relacionamentosSection) relacionamentosSection.style.display = 'block';
+    if (relacionamentosSection) relacionamentosSection.style.display = 'none'; // Sempre escondido
     
     // Atualizar menu ativo
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -6996,53 +7317,197 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
     mostrarRelacionamentos(relacionamentos, usuario.estado_civil);
 
     // Carregar ocupações e igrejas
-    carregarOcupacoesEIgrejasPerfil(usuario.ocupacao_id, usuario.igreja_id);
+    // Ocupação e Igreja removidos do formulário de perfil - agora estão apenas no primeiro registro
+    // carregarOcupacoesEIgrejasPerfil(usuario.ocupacao_id, usuario.igreja_id);
 
-    // Preencher campos se já tiver dados
-    document.getElementById('nomeCompleto').value = usuario.nome_completo || '';
-    
-    // Aplicar máscara no CPF e tornar readonly se já tiver CPF
-    const cpfInput = document.getElementById('cpf');
+    // Nome Completo removido - já é preenchido no cadastro inicial (nome + sobrenome)
+    // Exibir Nome, Email, ID, CPF, Igreja e Ocupação automaticamente (extraídos do primeiro registro)
+    const perfilNomeExibicao = document.getElementById('perfilNomeExibicao');
+    const perfilEmailExibicao = document.getElementById('perfilEmailExibicao');
+    const perfilIdExibicao = document.getElementById('perfilIdExibicao');
+    const perfilCpfExibicao = document.getElementById('perfilCpfExibicao');
+    const perfilIgrejaExibicao = document.getElementById('perfilIgrejaExibicao');
+    const perfilOcupacaoExibicao = document.getElementById('perfilOcupacaoExibicao');
+    const perfilAdminBadge = document.getElementById('perfilAdminBadge');
+    if (perfilNomeExibicao) {
+        perfilNomeExibicao.textContent = usuario.nome || '-';
+    }
+    if (perfilEmailExibicao) {
+        perfilEmailExibicao.textContent = usuario.email || '-';
+    }
+    if (perfilIdExibicao) {
+        perfilIdExibicao.textContent = usuario.id || '-';
+    }
+    if (perfilCpfExibicao) {
     if (usuario.cpf) {
+            // Aplicar máscara no CPF
         let cpf = usuario.cpf.replace(/\D/g, '');
         cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
         cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
         cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        cpfInput.value = cpf;
-        cpfInput.readOnly = true;
-        cpfInput.style.backgroundColor = '#f5f5f5';
-        cpfInput.style.cursor = 'not-allowed';
-        cpfInput.style.color = '#ff4444';
-        cpfInput.style.fontWeight = 'bold';
+            perfilCpfExibicao.textContent = cpf;
     } else {
-        cpfInput.readOnly = false;
-        cpfInput.style.backgroundColor = 'white';
-        cpfInput.style.cursor = 'text';
+            perfilCpfExibicao.textContent = '-';
+        }
+    }
+    if (perfilIgrejaExibicao) {
+        if (usuario.igreja_nome) {
+            perfilIgrejaExibicao.textContent = usuario.igreja_nome;
+            perfilIgrejaExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilIgrejaExibicao.textContent = 'Indefinido';
+            perfilIgrejaExibicao.style.fontStyle = 'italic';
+        }
+    }
+    if (perfilOcupacaoExibicao) {
+        if (usuario.ocupacao_nome) {
+            perfilOcupacaoExibicao.textContent = usuario.ocupacao_nome;
+            perfilOcupacaoExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilOcupacaoExibicao.textContent = 'Indefinido';
+            perfilOcupacaoExibicao.style.fontStyle = 'italic';
+        }
+    }
+    // Exibir Data de Nascimento
+    const perfilDataNascimentoExibicao = document.getElementById('perfilDataNascimentoExibicao');
+    if (perfilDataNascimentoExibicao) {
+        if (usuario.data_nascimento) {
+            const dataNasc = new Date(usuario.data_nascimento);
+            const dia = String(dataNasc.getDate()).padStart(2, '0');
+            const mes = String(dataNasc.getMonth() + 1).padStart(2, '0');
+            const ano = dataNasc.getFullYear();
+            perfilDataNascimentoExibicao.textContent = `${dia}/${mes}/${ano}`;
+        } else {
+            perfilDataNascimentoExibicao.textContent = '-';
+        }
+    }
+    // Exibir Data de Casamento (apenas se for casado)
+    const perfilDataCasamentoExibicao = document.getElementById('perfilDataCasamentoExibicao');
+    const perfilDataCasamentoContainer = document.getElementById('perfilDataCasamentoContainer');
+    if (perfilDataCasamentoExibicao && perfilDataCasamentoContainer) {
+        if (usuario.estado_civil === 'casado' && usuario.data_sacamento) {
+            const dataCas = new Date(usuario.data_sacamento);
+            const dia = String(dataCas.getDate()).padStart(2, '0');
+            const mes = String(dataCas.getMonth() + 1).padStart(2, '0');
+            const ano = dataCas.getFullYear();
+            perfilDataCasamentoExibicao.textContent = `${dia}/${mes}/${ano}`;
+            perfilDataCasamentoContainer.style.display = 'flex';
+        } else {
+            perfilDataCasamentoContainer.style.display = 'none';
+        }
+    }
+    // Exibir Data de Batismo
+    const perfilDataBatismoExibicao = document.getElementById('perfilDataBatismoExibicao');
+    if (perfilDataBatismoExibicao) {
+        if (usuario.data_batismo) {
+            const dataBat = new Date(usuario.data_batismo);
+            const dia = String(dataBat.getDate()).padStart(2, '0');
+            const mes = String(dataBat.getMonth() + 1).padStart(2, '0');
+            const ano = dataBat.getFullYear();
+            perfilDataBatismoExibicao.textContent = `${dia}/${mes}/${ano}`;
+            perfilDataBatismoExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilDataBatismoExibicao.textContent = 'Indefinido';
+            perfilDataBatismoExibicao.style.fontStyle = 'italic';
+        }
+    }
+    // Mostrar badge "(Adm)" se for administrador (ID = 1)
+    if (perfilAdminBadge) {
+        if (usuario.id === 1) {
+            perfilAdminBadge.style.display = 'inline';
+        } else {
+            perfilAdminBadge.style.display = 'none';
+        }
     }
     
-    document.getElementById('endereco').value = usuario.endereco || '';
-    
-    // Aplicar máscara no CEP
+    // Exibir Endereço abaixo da linha
+    const perfilEnderecoExibicaoAbaixoLinha = document.getElementById('perfilEnderecoExibicaoAbaixoLinha');
+    if (perfilEnderecoExibicaoAbaixoLinha) {
+        perfilEnderecoExibicaoAbaixoLinha.textContent = usuario.endereco || '-';
+    }
+    // Exibir CEP abaixo da linha
+    const perfilCepExibicaoAbaixoLinha = document.getElementById('perfilCepExibicaoAbaixoLinha');
+    if (perfilCepExibicaoAbaixoLinha) {
     if (usuario.cep) {
         let cep = usuario.cep.replace(/\D/g, '');
         cep = cep.replace(/(\d{5})(\d)/, '$1-$2');
-        document.getElementById('cep').value = cep;
+            perfilCepExibicaoAbaixoLinha.textContent = cep;
+            perfilCepExibicaoAbaixoLinha.style.fontStyle = 'normal';
+        } else {
+            perfilCepExibicaoAbaixoLinha.textContent = 'Indefinido';
+            perfilCepExibicaoAbaixoLinha.style.fontStyle = 'italic';
+        }
     }
-    
-    // Aplicar máscara no telefone
+    // Exibir Contato abaixo do endereço
+    const perfilContatoExibicao = document.getElementById('perfilContatoExibicao');
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    if (perfilContatoExibicao) {
     if (usuario.telefone) {
         let telefone = usuario.telefone.replace(/\D/g, '');
+            let telefoneFormatado = telefone;
+            
+            // Formatar telefone para exibição
         if (telefone.length <= 10) {
-            telefone = telefone.replace(/(\d{2})(\d)/, '($1) $2');
-            telefone = telefone.replace(/(\d{4})(\d)/, '$1-$2');
+                telefoneFormatado = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{4})(\d)/, '$1-$2');
         } else {
-            telefone = telefone.replace(/(\d{2})(\d)/, '($1) $2');
-            telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2');
+                telefoneFormatado = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            
+            perfilContatoExibicao.textContent = telefoneFormatado;
+            
+            // Configurar botão WhatsApp
+            if (btnWhatsApp) {
+                // Formatar telefone para WhatsApp (apenas números, adicionar código do país se necessário)
+                let telefoneWhatsApp = telefone;
+                // Se não tiver código do país e for número brasileiro, adicionar 55
+                if (telefone.length === 10 || telefone.length === 11) {
+                    // Adicionar código do país 55 para Brasil
+                    telefoneWhatsApp = '55' + telefone;
+                }
+                
+                // Criar link do WhatsApp
+                const whatsappUrl = `https://wa.me/${telefoneWhatsApp}`;
+                btnWhatsApp.href = whatsappUrl;
+                btnWhatsApp.style.display = 'flex';
+            }
+        } else {
+            perfilContatoExibicao.textContent = '-';
+            if (btnWhatsApp) {
+                btnWhatsApp.style.display = 'none';
+            }
         }
-        document.getElementById('telefone').value = telefone;
+    }
+    // Localização Real removida
+    
+    // Endereço, CEP, Telefone, Estado Civil e Tem Filhos removidos do formulário - agora estão apenas no primeiro registro
+
+    // Carregar foto de perfil se existir (e resetar variável para não sobrescrever se não alterar)
+    console.log('Carregando foto de perfil do usuário:', usuario.foto_perfil ? 'foto presente' : 'sem foto');
+    fotoPerfilBase64 = usuario.foto_perfil || null; // Armazenar foto existente
+    if (usuario.foto_perfil) {
+        // Aguardar um pouco para garantir que os elementos DOM estejam prontos
+        setTimeout(() => {
+            carregarFotoPerfil(usuario.foto_perfil);
+        }, 100);
+    } else {
+        // Se não houver foto, garantir que os botões estejam no estado correto
+        const btnEscolherFoto = document.getElementById('btnEscolherFoto');
+        const btnEditarFoto = document.getElementById('btnEditarFoto');
+        if (btnEscolherFoto) {
+            btnEscolherFoto.style.display = 'inline-block';
+        }
+        if (btnEditarFoto) {
+            btnEditarFoto.style.display = 'none';
+        }
     }
     
-    document.getElementById('estadoCivil').value = usuario.estado_civil || '';
+    // Exibir estado civil e cônjuge (passando relacionamentos)
+    exibirEstadoCivilComConjuge(usuario, relacionamentos);
+    
+    // Configurar botão de editar estado civil
+    configurarEdicaoEstadoCivil();
 
     // Preencher dados de filhos se existirem
     const filhos = relacionamentos.filter(r => r.tipo === 'filho');
@@ -7089,31 +7554,49 @@ function mostrarFormularioPerfilCompleto(usuario, relacionamentos = []) {
         document.getElementById('camposFilhos').style.display = 'none';
     }
 }
-
 // Mostrar perfil completo
 function mostrarPerfilCompleto(data) {
     const usuario = data.usuario;
     const relacionamentos = data.relacionamentos || [];
     currentUserId = usuario.id;
     
+    // IMPORTANTE: Salvar a seção atual como 'perfil' para garantir que seja restaurada corretamente
+    salvarSecaoAtual('perfil');
+    
     // Esconder formulários de login/registro
     esconderFormulariosLogin();
     
     // Esconder TODAS as outras seções primeiro
     if (inicioSection) inicioSection.style.display = 'none';
-    if (perfilCompletoForm) {
-        perfilCompletoForm.style.display = 'none';
-        fecharModalForms();
-    }
     if (adminSection) adminSection.style.display = 'none';
     if (configSection) configSection.style.display = 'none';
+    
+    // IMPORTANTE: Mostrar perfilDadosSection e esconder cadastroCredenciaisSection
+    const perfilDadosSection = document.getElementById('perfilDadosSection');
+    const cadastroCredenciaisSection = document.getElementById('cadastroCredenciaisSection');
+    if (perfilDadosSection) {
+        perfilDadosSection.style.setProperty('display', 'block', 'important');
+        perfilDadosSection.style.setProperty('visibility', 'visible', 'important');
+    }
+    if (cadastroCredenciaisSection) {
+        cadastroCredenciaisSection.style.setProperty('display', 'none', 'important');
+    }
+    
+    // Mostrar perfilCompletoForm
+    if (perfilCompletoForm) {
+        perfilCompletoForm.style.setProperty('display', 'block', 'important');
+        perfilCompletoForm.style.setProperty('visibility', 'visible', 'important');
+    }
     
     // Garantir que o sidebar esteja visível
     garantirSidebarVisivel();
     
-    // Mostrar menu e perfil
+    // Mostrar menu
     if (sidebarMenu) sidebarMenu.style.display = 'block';
-    if (profileSection) profileSection.style.display = 'block';
+    // Esconder profileSection antiga (que usa userInfo) - os dados estão em perfilDadosSection
+    if (profileSection) {
+        profileSection.style.display = 'none';
+    }
     const container = document.querySelector('.container');
     if (container) container.classList.add('with-sidebar');
     if (pageTitle) pageTitle.textContent = 'Meu Perfil';
@@ -7125,7 +7608,8 @@ function mostrarPerfilCompleto(data) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
-    document.querySelector('[data-section="perfil"]').classList.add('active');
+    const menuPerfil = document.querySelector('[data-section="perfil"]');
+    if (menuPerfil) menuPerfil.classList.add('active');
 
     // A ocupação e igreja vêm DIRETAMENTE do cadastro oficial (mesma fonte da administração)
     // Estes dados são extraídos da mesma tabela oficial (igreja_membros)
@@ -7139,8 +7623,722 @@ function mostrarPerfilCompleto(data) {
         dados_completos: usuario
     });
     
-    // Passar ocupacao_nome que vem do backend (do SQL)
-    exibirDadosPerfil(usuario, relacionamentos, usuario.ocupacao_nome);
+    // Preencher campos de exibição (mesmo código de mostrarFormularioPerfilCompleto)
+    const perfilNomeExibicao = document.getElementById('perfilNomeExibicao');
+    const perfilEmailExibicao = document.getElementById('perfilEmailExibicao');
+    const perfilIdExibicao = document.getElementById('perfilIdExibicao');
+    const perfilCpfExibicao = document.getElementById('perfilCpfExibicao');
+    const perfilIgrejaExibicao = document.getElementById('perfilIgrejaExibicao');
+    const perfilOcupacaoExibicao = document.getElementById('perfilOcupacaoExibicao');
+    const perfilAdminBadge = document.getElementById('perfilAdminBadge');
+    if (perfilNomeExibicao) {
+        perfilNomeExibicao.textContent = usuario.nome || '-';
+    }
+    if (perfilEmailExibicao) {
+        perfilEmailExibicao.textContent = usuario.email || '-';
+    }
+    if (perfilIdExibicao) {
+        perfilIdExibicao.textContent = usuario.id || '-';
+    }
+    if (perfilCpfExibicao) {
+        if (usuario.cpf) {
+            // Aplicar máscara no CPF
+            let cpf = usuario.cpf.replace(/\D/g, '');
+            cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+            cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+            cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            perfilCpfExibicao.textContent = cpf;
+        } else {
+            perfilCpfExibicao.textContent = '-';
+        }
+    }
+    if (perfilIgrejaExibicao) {
+        if (usuario.igreja_nome) {
+            perfilIgrejaExibicao.textContent = usuario.igreja_nome;
+            perfilIgrejaExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilIgrejaExibicao.textContent = 'Indefinido';
+            perfilIgrejaExibicao.style.fontStyle = 'italic';
+        }
+    }
+    if (perfilOcupacaoExibicao) {
+        if (usuario.ocupacao_nome) {
+            perfilOcupacaoExibicao.textContent = usuario.ocupacao_nome;
+            perfilOcupacaoExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilOcupacaoExibicao.textContent = 'Indefinido';
+            perfilOcupacaoExibicao.style.fontStyle = 'italic';
+        }
+    }
+    // Exibir Data de Nascimento
+    const perfilDataNascimentoExibicao = document.getElementById('perfilDataNascimentoExibicao');
+    if (perfilDataNascimentoExibicao) {
+        if (usuario.data_nascimento) {
+            const dataNasc = new Date(usuario.data_nascimento);
+            const dia = String(dataNasc.getDate()).padStart(2, '0');
+            const mes = String(dataNasc.getMonth() + 1).padStart(2, '0');
+            const ano = dataNasc.getFullYear();
+            perfilDataNascimentoExibicao.textContent = `${dia}/${mes}/${ano}`;
+        } else {
+            perfilDataNascimentoExibicao.textContent = '-';
+        }
+    }
+    // Exibir Data de Casamento (apenas se for casado)
+    const perfilDataCasamentoExibicao = document.getElementById('perfilDataCasamentoExibicao');
+    const perfilDataCasamentoContainer = document.getElementById('perfilDataCasamentoContainer');
+    if (perfilDataCasamentoExibicao && perfilDataCasamentoContainer) {
+        if (usuario.estado_civil === 'casado' && usuario.data_sacamento) {
+            const dataCas = new Date(usuario.data_sacamento);
+            const dia = String(dataCas.getDate()).padStart(2, '0');
+            const mes = String(dataCas.getMonth() + 1).padStart(2, '0');
+            const ano = dataCas.getFullYear();
+            perfilDataCasamentoExibicao.textContent = `${dia}/${mes}/${ano}`;
+            perfilDataCasamentoContainer.style.display = 'flex';
+        } else {
+            perfilDataCasamentoContainer.style.display = 'none';
+        }
+    }
+    // Exibir Data de Batismo
+    const perfilDataBatismoExibicao = document.getElementById('perfilDataBatismoExibicao');
+    if (perfilDataBatismoExibicao) {
+        if (usuario.data_batismo) {
+            const dataBat = new Date(usuario.data_batismo);
+            const dia = String(dataBat.getDate()).padStart(2, '0');
+            const mes = String(dataBat.getMonth() + 1).padStart(2, '0');
+            const ano = dataBat.getFullYear();
+            perfilDataBatismoExibicao.textContent = `${dia}/${mes}/${ano}`;
+            perfilDataBatismoExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilDataBatismoExibicao.textContent = 'Indefinido';
+            perfilDataBatismoExibicao.style.fontStyle = 'italic';
+        }
+    }
+    // Exibir Endereço abaixo da linha
+    const perfilEnderecoExibicaoAbaixoLinha = document.getElementById('perfilEnderecoExibicaoAbaixoLinha');
+    if (perfilEnderecoExibicaoAbaixoLinha) {
+        perfilEnderecoExibicaoAbaixoLinha.textContent = usuario.endereco || '-';
+    }
+    // Exibir CEP abaixo da linha
+    const perfilCepExibicaoAbaixoLinha = document.getElementById('perfilCepExibicaoAbaixoLinha');
+    if (perfilCepExibicaoAbaixoLinha) {
+        if (usuario.cep) {
+            let cep = usuario.cep.replace(/\D/g, '');
+            cep = cep.replace(/(\d{5})(\d)/, '$1-$2');
+            perfilCepExibicaoAbaixoLinha.textContent = cep;
+            perfilCepExibicaoAbaixoLinha.style.fontStyle = 'normal';
+        } else {
+            perfilCepExibicaoAbaixoLinha.textContent = 'Indefinido';
+            perfilCepExibicaoAbaixoLinha.style.fontStyle = 'italic';
+        }
+    }
+    // Exibir Contato abaixo do endereço
+    const perfilContatoExibicao = document.getElementById('perfilContatoExibicao');
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    if (perfilContatoExibicao) {
+        if (usuario.telefone) {
+            let telefone = usuario.telefone.replace(/\D/g, '');
+            let telefoneFormatado = telefone;
+            
+            // Formatar telefone para exibição
+            if (telefone.length <= 10) {
+                telefoneFormatado = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                telefoneFormatado = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            
+            perfilContatoExibicao.textContent = telefoneFormatado;
+            
+            // Configurar botão WhatsApp
+            if (btnWhatsApp) {
+                // Formatar telefone para WhatsApp (apenas números, adicionar código do país se necessário)
+                let telefoneWhatsApp = telefone;
+                // Se não tiver código do país e for número brasileiro, adicionar 55
+                if (telefone.length === 10 || telefone.length === 11) {
+                    // Adicionar código do país 55 para Brasil
+                    telefoneWhatsApp = '55' + telefone;
+                }
+                
+                // Criar link do WhatsApp
+                const whatsappUrl = `https://wa.me/${telefoneWhatsApp}`;
+                btnWhatsApp.href = whatsappUrl;
+                btnWhatsApp.style.display = 'flex';
+            }
+        } else {
+            perfilContatoExibicao.textContent = '-';
+            if (btnWhatsApp) {
+                btnWhatsApp.style.display = 'none';
+            }
+        }
+    }
+    // Localização Real removida
+    
+    // Exibir Estado Civil abaixo da linha
+    const perfilEstadoCivilExibicaoAbaixoLinha = document.getElementById('perfilEstadoCivilExibicaoAbaixoLinha');
+    const perfilConjugeContainer = document.getElementById('perfilConjugeContainer');
+    const perfilConjugeExibicao = document.getElementById('perfilConjugeExibicao');
+    
+    if (perfilEstadoCivilExibicaoAbaixoLinha) {
+        const estadoCivilMap = {
+            'solteiro': 'Solteiro(a)',
+            'casado': 'Casado(a)',
+            'divorciado': 'Divorciado(a)',
+            'viuvo': 'Viúvo(a)',
+            'namorando': 'Namorando'
+        };
+        
+        if (usuario.estado_civil) {
+            const estadoCivilFormatado = estadoCivilMap[usuario.estado_civil] || usuario.estado_civil;
+            perfilEstadoCivilExibicaoAbaixoLinha.textContent = estadoCivilFormatado;
+            perfilEstadoCivilExibicaoAbaixoLinha.style.fontStyle = 'normal';
+        } else {
+            perfilEstadoCivilExibicaoAbaixoLinha.textContent = 'Indefinido';
+            perfilEstadoCivilExibicaoAbaixoLinha.style.fontStyle = 'italic';
+        }
+        
+        // Se for casado, buscar e exibir cônjuge
+        if (usuario.estado_civil === 'casado' && relacionamentos && relacionamentos.length > 0) {
+            const conjuge = relacionamentos.find(r => r.tipo === 'conjuge');
+            if (conjuge && perfilConjugeContainer && perfilConjugeExibicao) {
+                const nomeConjuge = conjuge.nome_completo || conjuge.nome || 'Não informado';
+                const idConjuge = conjuge.relacionado_id || conjuge.id || '-';
+                perfilConjugeExibicao.textContent = `${nomeConjuge} (ID: ${idConjuge})`;
+                perfilConjugeContainer.style.display = 'flex';
+            } else if (perfilConjugeContainer) {
+                perfilConjugeContainer.style.display = 'none';
+            }
+        } else {
+            // Se não for casado ou não tiver cônjuge, esconder container do cônjuge
+            if (perfilConjugeContainer) {
+                perfilConjugeContainer.style.display = 'none';
+            }
+        }
+    }
+    
+    // Exibir Filhos
+    const perfilFilhosExibicao = document.getElementById('perfilFilhosExibicao');
+    if (perfilFilhosExibicao && relacionamentos) {
+        const filhos = relacionamentos.filter(r => r.tipo === 'filho');
+        if (filhos.length > 0) {
+            const filhosFormatados = filhos.map(filho => {
+                const nome = filho.nome_completo || filho.nome || 'Não informado';
+                const id = filho.relacionado_id || filho.id || '-';
+                return `${nome} (ID: ${id})`;
+            }).join(', ');
+            perfilFilhosExibicao.textContent = filhosFormatados;
+            perfilFilhosExibicao.style.fontStyle = 'normal';
+        } else {
+            perfilFilhosExibicao.textContent = 'Nenhum filho cadastrado';
+            perfilFilhosExibicao.style.fontStyle = 'italic';
+        }
+    }
+    
+    // Mostrar badge "(Adm)" se for administrador (ID = 1)
+    if (perfilAdminBadge) {
+        if (usuario.id === 1) {
+            perfilAdminBadge.style.display = 'inline';
+        } else {
+            perfilAdminBadge.style.display = 'none';
+        }
+    }
+    
+    // Carregar foto de perfil
+    setTimeout(() => carregarFotoPerfil(usuario.foto_perfil), 100);
+    
+    // Exibir estado civil e cônjuge (passando relacionamentos)
+    exibirEstadoCivilComConjuge(usuario, relacionamentos);
+    
+    // Configurar botão de editar estado civil
+    configurarEdicaoEstadoCivil();
+}
+
+// Função auxiliar para exibir estado civil e cônjuge
+function exibirEstadoCivilComConjuge(usuario, relacionamentos = []) {
+    const perfilEstadoCivilExibicaoAbaixoLinha = document.getElementById('perfilEstadoCivilExibicaoAbaixoLinha');
+    const perfilConjugeContainer = document.getElementById('perfilConjugeContainer');
+    const perfilConjugeExibicao = document.getElementById('perfilConjugeExibicao');
+    
+    if (perfilEstadoCivilExibicaoAbaixoLinha) {
+        const estadoCivilMap = {
+            'solteiro': 'Solteiro(a)',
+            'casado': 'Casado(a)',
+            'divorciado': 'Divorciado(a)',
+            'viuvo': 'Viúvo(a)',
+            'namorando': 'Namorando'
+        };
+        
+        if (usuario.estado_civil) {
+            const estadoCivilFormatado = estadoCivilMap[usuario.estado_civil] || usuario.estado_civil;
+            perfilEstadoCivilExibicaoAbaixoLinha.textContent = estadoCivilFormatado;
+            perfilEstadoCivilExibicaoAbaixoLinha.style.fontStyle = 'normal';
+        } else {
+            perfilEstadoCivilExibicaoAbaixoLinha.textContent = 'Indefinido';
+            perfilEstadoCivilExibicaoAbaixoLinha.style.fontStyle = 'italic';
+        }
+        
+        // Se for casado, buscar e exibir cônjuge
+        if (usuario.estado_civil === 'casado') {
+            if (relacionamentos && relacionamentos.length > 0) {
+                const conjuge = relacionamentos.find(r => r.tipo === 'conjuge');
+                if (conjuge && perfilConjugeContainer && perfilConjugeExibicao) {
+                    const nomeConjuge = conjuge.nome_completo || conjuge.nome || 'Não informado';
+                    const idConjuge = conjuge.relacionado_id || conjuge.id || '-';
+                    perfilConjugeExibicao.textContent = `${nomeConjuge} (ID: ${idConjuge})`;
+                    perfilConjugeContainer.style.display = 'flex';
+                } else if (perfilConjugeContainer) {
+                    perfilConjugeContainer.style.display = 'none';
+                }
+            } else if (perfilConjugeContainer) {
+                // Se não houver relacionamentos, esconder
+                perfilConjugeContainer.style.display = 'none';
+            }
+        } else {
+            // Se não for casado (solteiro, divorciado, viúvo, namorando), esconder container do cônjuge
+            if (perfilConjugeContainer) {
+                perfilConjugeContainer.style.display = 'none';
+            }
+        }
+        
+        // Exibir Filhos
+        const perfilFilhosExibicao = document.getElementById('perfilFilhosExibicao');
+        if (perfilFilhosExibicao && relacionamentos) {
+            const filhos = relacionamentos.filter(r => r.tipo === 'filho');
+            if (filhos.length > 0) {
+                const filhosFormatados = filhos.map(filho => {
+                    const nome = filho.nome_completo || filho.nome || 'Não informado';
+                    const id = filho.relacionado_id || filho.id || '-';
+                    return `${nome} (ID: ${id})`;
+                }).join(', ');
+                perfilFilhosExibicao.textContent = filhosFormatados;
+                perfilFilhosExibicao.style.fontStyle = 'normal';
+            } else {
+                perfilFilhosExibicao.textContent = 'Nenhum filho cadastrado';
+                perfilFilhosExibicao.style.fontStyle = 'italic';
+            }
+        }
+    }
+}
+// Função definirLocalizacaoCasa removida
+
+// Configurar botão de editar dados do perfil (Endereço, CEP, Contato, Estado Civil)
+function configurarEdicaoPerfilDados() {
+    const btnEditarPerfilDados = document.getElementById('btnEditarPerfilDados');
+    const btnSalvarPerfilDados = document.getElementById('btnSalvarPerfilDados');
+    const btnCancelarPerfilDados = document.getElementById('btnCancelarPerfilDados');
+    const perfilDadosExibicaoContainer = document.getElementById('perfilDadosExibicaoContainer');
+    const perfilDadosEdicaoContainer = document.getElementById('perfilDadosEdicaoContainer');
+    const perfilEnderecoEdicao = document.getElementById('perfilEnderecoEdicao');
+    const perfilCepEdicao = document.getElementById('perfilCepEdicao');
+    const perfilContatoEdicao = document.getElementById('perfilContatoEdicao');
+    const perfilEstadoCivilEdicao = document.getElementById('perfilEstadoCivilEdicao');
+    const perfilConjugeEdicaoContainer = document.getElementById('perfilConjugeEdicaoContainer');
+    const perfilConjugeEdicao = document.getElementById('perfilConjugeEdicao');
+    const btnBuscarConjuge = document.getElementById('btnBuscarConjuge');
+    const perfilConjugeResultado = document.getElementById('perfilConjugeResultado');
+    
+    let conjugeIdSelecionado = null;
+    
+    // Máscaras de input
+    if (perfilCepEdicao) {
+        perfilCepEdicao.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+    
+    if (perfilContatoEdicao) {
+        perfilContatoEdicao.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+    
+    // Mostrar/ocultar campo de cônjuge quando estado civil mudar
+    if (perfilEstadoCivilEdicao) {
+        perfilEstadoCivilEdicao.addEventListener('change', function() {
+            if (this.value === 'casado' && perfilConjugeEdicaoContainer) {
+                perfilConjugeEdicaoContainer.style.display = 'block';
+            } else {
+                if (perfilConjugeEdicaoContainer) {
+                    perfilConjugeEdicaoContainer.style.display = 'none';
+                }
+                conjugeIdSelecionado = null;
+                if (perfilConjugeResultado) {
+                    perfilConjugeResultado.style.display = 'none';
+                }
+                if (perfilConjugeEdicao) {
+                    perfilConjugeEdicao.value = '';
+                }
+            }
+        });
+    }
+    
+    // Buscar cônjuge por ID ou nome
+    if (btnBuscarConjuge) {
+        btnBuscarConjuge.addEventListener('click', async () => {
+            if (!perfilConjugeEdicao || !perfilConjugeEdicao.value.trim()) {
+                mostrarMensagem('Por favor, digite o ID ou nome do cônjuge', 'error');
+                return;
+            }
+            
+            const busca = perfilConjugeEdicao.value.trim();
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    mostrarMensagem('Token não encontrado. Por favor, faça login novamente.', 'error');
+                    return;
+                }
+                
+                // Verificar se é um ID numérico
+                const idNumero = parseInt(busca);
+                let response;
+                
+                if (!isNaN(idNumero) && idNumero > 0) {
+                    // Buscar por ID
+                    response = await fetch(`${API_URL}/usuarios/buscar?id=${idNumero}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                } else {
+                    // Buscar por nome
+                    response = await fetch(`${API_URL}/usuarios/buscar?nome=${encodeURIComponent(busca)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    let usuario;
+                    
+                    // Se retornar um único usuário
+                    if (data.usuario) {
+                        usuario = data.usuario;
+                    } 
+                    // Se retornar múltiplos usuários (busca por nome)
+                    else if (data.usuarios && data.usuarios.length > 0) {
+                        // Se encontrar apenas um, usar diretamente
+                        if (data.usuarios.length === 1) {
+                            usuario = data.usuarios[0];
+                        } else {
+                            // Se encontrar múltiplos, mostrar mensagem para o usuário escolher
+                            mostrarMensagem(`Múltiplos usuários encontrados. Por favor, use o ID para buscar especificamente. (${data.usuarios.length} encontrados)`, 'error');
+                            return;
+                        }
+                    } else {
+                        mostrarMensagem('Usuário não encontrado', 'error');
+                        conjugeIdSelecionado = null;
+                        if (perfilConjugeResultado) {
+                            perfilConjugeResultado.style.display = 'none';
+                        }
+                        return;
+                    }
+                    
+                    conjugeIdSelecionado = usuario.id;
+                    
+                    if (perfilConjugeResultado) {
+                        document.getElementById('conjugeNomeResultado').textContent = usuario.nome_completo || usuario.nome || '-';
+                        document.getElementById('conjugeIdResultado').textContent = usuario.id;
+                        document.getElementById('conjugeEmailResultado').textContent = usuario.email || '-';
+                        perfilConjugeResultado.style.display = 'block';
+                    }
+                    
+                    mostrarMensagem('Cônjuge encontrado!', 'success');
+                } else {
+                    mostrarMensagem(data.erro || 'Cônjuge não encontrado', 'error');
+                    conjugeIdSelecionado = null;
+                    if (perfilConjugeResultado) {
+                        perfilConjugeResultado.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao buscar cônjuge:', error);
+                mostrarMensagem('Erro ao buscar cônjuge', 'error');
+            }
+        });
+    }
+    
+    if (btnEditarPerfilDados) {
+        btnEditarPerfilDados.addEventListener('click', async () => {
+            // Esconder exibição e mostrar edição
+            if (perfilDadosExibicaoContainer) {
+                perfilDadosExibicaoContainer.style.display = 'none';
+            }
+            if (perfilDadosEdicaoContainer) {
+                perfilDadosEdicaoContainer.style.display = 'block';
+            }
+            if (btnEditarPerfilDados) {
+                btnEditarPerfilDados.style.display = 'none';
+            }
+            
+            // Preencher campos com valores atuais
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    mostrarMensagem('Token não encontrado. Por favor, faça login novamente.', 'error');
+                    return;
+                }
+                
+                const responsePerfil = await fetch(`${API_URL}/perfil`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (responsePerfil.ok) {
+                    const dataPerfil = await responsePerfil.json();
+                    const usuarioAtual = dataPerfil.usuario;
+                    
+                    // Preencher campos
+                    if (perfilEnderecoEdicao) {
+                        perfilEnderecoEdicao.value = usuarioAtual.endereco || '';
+                    }
+                    if (perfilCepEdicao) {
+                        if (usuarioAtual.cep) {
+                            let cep = usuarioAtual.cep.replace(/\D/g, '');
+                            if (cep.length > 5) {
+                                cep = cep.replace(/(\d{5})(\d)/, '$1-$2');
+                            }
+                            perfilCepEdicao.value = cep;
+                        } else {
+                            perfilCepEdicao.value = '';
+                        }
+                    }
+                    if (perfilContatoEdicao) {
+                        if (usuarioAtual.telefone) {
+                            let telefone = usuarioAtual.telefone.replace(/\D/g, '');
+                            if (telefone.length <= 10) {
+                                telefone = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                                telefone = telefone.replace(/(\d{4})(\d)/, '$1-$2');
+                            } else {
+                                telefone = telefone.replace(/(\d{2})(\d)/, '($1) $2');
+                                telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2');
+                            }
+                            perfilContatoEdicao.value = telefone;
+                        } else {
+                            perfilContatoEdicao.value = '';
+                        }
+                    }
+                    if (perfilEstadoCivilEdicao) {
+                        perfilEstadoCivilEdicao.value = usuarioAtual.estado_civil || '';
+                        // Mostrar campo de cônjuge se for casado
+                        if (usuarioAtual.estado_civil === 'casado' && perfilConjugeEdicaoContainer) {
+                            perfilConjugeEdicaoContainer.style.display = 'block';
+                        }
+                    }
+                    
+                    // Carregar filhos
+                    const perfilFilhosEdicao = document.getElementById('perfilFilhosEdicao');
+                    if (perfilFilhosEdicao) {
+                        try {
+                            // Buscar relacionamentos para obter os filhos
+                            const responseRelacionamentos = await fetch(`${API_URL}/admin/usuarios/${usuarioAtual.id}/relacionamentos`, {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+                            
+                            if (responseRelacionamentos.ok) {
+                                const dataRelacionamentos = await responseRelacionamentos.json();
+                                const relacionamentos = dataRelacionamentos.relacionamentos || [];
+                                const filhos = relacionamentos.filter(r => r.tipo === 'filho');
+                                
+                                if (filhos.length > 0) {
+                                    const filhosHTML = filhos.map(filho => {
+                                        const nome = filho.nome_completo || filho.nome || 'Não informado';
+                                        const id = filho.relacionado_id || filho.id || '-';
+                                        return `<div style="margin-bottom: 8px; padding: 6px; background: rgba(79, 156, 255, 0.1); border-radius: 4px; border-left: 3px solid rgba(79, 156, 255, 0.5);">${nome} (ID: ${id})</div>`;
+                                    }).join('');
+                                    perfilFilhosEdicao.innerHTML = filhosHTML;
+                                } else {
+                                    perfilFilhosEdicao.innerHTML = '<span style="color: #73809A; font-style: italic;">Nenhum filho cadastrado</span>';
+                                }
+                            } else {
+                                perfilFilhosEdicao.innerHTML = '<span style="color: #73809A; font-style: italic;">Nenhum filho cadastrado</span>';
+                            }
+                        } catch (error) {
+                            console.error('Erro ao carregar filhos:', error);
+                            perfilFilhosEdicao.innerHTML = '<span style="color: #73809A; font-style: italic;">Erro ao carregar filhos</span>';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do perfil:', error);
+            }
+        });
+    }
+    
+    if (btnSalvarPerfilDados) {
+        btnSalvarPerfilDados.addEventListener('click', async () => {
+            if (!perfilEnderecoEdicao || !perfilContatoEdicao || !perfilEstadoCivilEdicao) {
+                mostrarMensagem('Erro ao acessar campos do formulário', 'error');
+                return;
+            }
+            
+            const endereco = perfilEnderecoEdicao.value.trim();
+            const cep = perfilCepEdicao ? perfilCepEdicao.value.replace(/\D/g, '') : '';
+            const telefone = perfilContatoEdicao.value.replace(/\D/g, '');
+            const estadoCivil = perfilEstadoCivilEdicao.value;
+            
+            if (!endereco || !telefone || !estadoCivil) {
+                mostrarMensagem('Por favor, preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+            
+            // Se for casado, verificar se tem cônjuge selecionado
+            if (estadoCivil === 'casado' && !conjugeIdSelecionado) {
+                mostrarMensagem('Por favor, busque e selecione o cônjuge', 'error');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    mostrarMensagem('Token não encontrado. Por favor, faça login novamente.', 'error');
+                    return;
+                }
+                
+                // Atualizar dados do perfil
+                const dadosAtualizacao = {
+                    endereco: endereco,
+                    cep: cep,
+                    telefone: telefone,
+                    estado_civil: estadoCivil
+                };
+                
+                const response = await fetch(`${API_URL}/perfil/completo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dadosAtualizacao)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    mostrarMensagem(data.erro || 'Erro ao atualizar dados', 'error');
+                    return;
+                }
+                
+                // Se for casado, criar/atualizar relacionamento
+                if (estadoCivil === 'casado' && conjugeIdSelecionado) {
+                    // Primeiro, remover relacionamento existente (se houver)
+                    try {
+                        const responseRelacionamentos = await fetch(`${API_URL}/relacionamentos`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (responseRelacionamentos.ok) {
+                            const dataRelacionamentos = await responseRelacionamentos.json();
+                            const relacionamentos = dataRelacionamentos.relacionamentos || [];
+                            const relacionamentoConjuge = relacionamentos.find(r => r.tipo === 'conjuge');
+                            
+                            if (relacionamentoConjuge) {
+                                // Remover relacionamento existente
+                                await fetch(`${API_URL}/relacionamentos/${relacionamentoConjuge.id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // Criar novo relacionamento
+                        const responseNovoRelacionamento = await fetch(`${API_URL}/relacionamentos`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                tipo: 'conjuge',
+                                relacionado_id: conjugeIdSelecionado
+                            })
+                        });
+                        
+                        if (!responseNovoRelacionamento.ok) {
+                            const dataErro = await responseNovoRelacionamento.json();
+                            console.error('Erro ao criar relacionamento:', dataErro);
+                        }
+                    } catch (error) {
+                        console.error('Erro ao gerenciar relacionamento:', error);
+                    }
+                }
+                
+                mostrarMensagem('Dados atualizados com sucesso!', 'success');
+                
+                // Esconder edição e mostrar exibição
+                if (perfilDadosEdicaoContainer) {
+                    perfilDadosEdicaoContainer.style.display = 'none';
+                }
+                if (perfilDadosExibicaoContainer) {
+                    perfilDadosExibicaoContainer.style.display = 'block';
+                }
+                if (btnEditarPerfilDados) {
+                    btnEditarPerfilDados.style.display = 'block';
+                }
+                
+                // Recarregar perfil para atualizar exibição
+                setTimeout(() => carregarPerfilCompleto(), 500);
+            } catch (error) {
+                console.error('Erro ao atualizar dados:', error);
+                mostrarMensagem('Erro ao conectar com o servidor', 'error');
+            }
+        });
+    }
+    
+    if (btnCancelarPerfilDados) {
+        btnCancelarPerfilDados.addEventListener('click', () => {
+            // Esconder edição e mostrar exibição
+            if (perfilDadosEdicaoContainer) {
+                perfilDadosEdicaoContainer.style.display = 'none';
+            }
+            if (perfilDadosExibicaoContainer) {
+                perfilDadosExibicaoContainer.style.display = 'block';
+            }
+            if (btnEditarPerfilDados) {
+                btnEditarPerfilDados.style.display = 'block';
+            }
+            
+            // Limpar campos
+            conjugeIdSelecionado = null;
+            if (perfilConjugeResultado) {
+                perfilConjugeResultado.style.display = 'none';
+            }
+            if (perfilConjugeEdicaoContainer) {
+                perfilConjugeEdicaoContainer.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Manter compatibilidade com código antigo
+function configurarEdicaoEstadoCivil() {
+    configurarEdicaoPerfilDados();
 }
 
 // Função auxiliar para buscar ocupação
@@ -7161,7 +8359,6 @@ async function buscarEExibirOcupacao(ocupacaoId) {
     }
     return 'Não informado';
 }
-
 // Função auxiliar para exibir dados do perfil
 // Esta função recebe dados diretamente do SQL via backend
 function exibirDadosPerfil(usuario, relacionamentos, ocupacaoNome) {
@@ -7202,8 +8399,23 @@ function exibirDadosPerfil(usuario, relacionamentos, ocupacaoNome) {
         igrejaFuncao
     });
     
+    // Foto de perfil
+    const fotoPerfilHtml = usuario.foto_perfil 
+        ? `<div style="text-align: center; margin-bottom: 15px;">
+            <img src="${usuario.foto_perfil}" alt="Foto" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #1e3a5a; object-fit: cover; margin: 0 auto; box-shadow: 0 2px 8px rgba(21, 45, 74, 0.3);">
+          </div>`
+        : `<div style="text-align: center; margin-bottom: 15px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #1e3a5a; background: #152d4a; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 8px rgba(21, 45, 74, 0.3);">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                    <circle cx="12" cy="8" r="4" fill="#6BA3D1" opacity="0.95"/>
+                    <path d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#6BA3D1" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.95"/>
+                </svg>
+            </div>
+          </div>`;
+    
     userInfo.innerHTML = `
-        <h2 style="margin-bottom: 20px; color: #667eea;">Meu Perfil</h2>
+        ${fotoPerfilHtml}
+        <h2 style="margin-bottom: 20px; color: #667eea; text-align: center;">Meu Perfil</h2>
         <p style="color: #999; font-size: 12px; margin-bottom: 15px; opacity: 0.6;">
             <strong style="color: #999;">ID de Cadastro:</strong> <span style="color: #bbb;">${usuario.id}</span>
         </p>
@@ -7555,7 +8767,6 @@ function limparMensagem() {
         msgDiv.className = 'message';
     }
 }
-
 // Event listener para "Tem filhos?"
 document.addEventListener('DOMContentLoaded', () => {
     const temFilhosSelect = document.getElementById('temFilhos');
@@ -7870,15 +9081,311 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
     
     // Mostrar barra quando clicar em qualquer lugar (para facilitar acesso)
-    document.addEventListener('click', () => {
-        if (sidebarMenu.style.display === 'flex') {
-            showNavBar();
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                if (sidebarMenu.style.display === 'flex') {
-                    hideNavBar();
-                }
-            }, 2000);
+});
+
+// Funções para gerenciar foto de perfil
+function previewFotoPerfil(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+        mostrarMensagem('Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF).', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        mostrarMensagem('A imagem deve ter no máximo 5MB.', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const fotoPerfilImg = document.getElementById('fotoPerfilImg');
+        const fotoPerfilPlaceholder = document.getElementById('fotoPerfilPlaceholder');
+        const btnEscolherFoto = document.getElementById('btnEscolherFoto');
+        const btnEditarFoto = document.getElementById('btnEditarFoto');
+        
+        if (fotoPerfilImg && fotoPerfilPlaceholder) {
+            fotoPerfilBase64 = e.target.result; // Armazenar base64
+            fotoPerfilImg.src = e.target.result;
+            fotoPerfilImg.style.display = 'block';
+            fotoPerfilPlaceholder.style.display = 'none';
+            
+            // Ocultar "Escolher foto" e mostrar "Editar Foto"
+            if (btnEscolherFoto) {
+                btnEscolherFoto.style.display = 'none';
+            }
+            if (btnEditarFoto) {
+                btnEditarFoto.style.display = 'inline-block';
+            }
+            
+            // Salvar automaticamente a foto
+            await salvarFotoPerfilAutomaticamente(e.target.result);
         }
-    }, { passive: true });
-})();
+    };
+    reader.readAsDataURL(file);
+}
+
+async function salvarFotoPerfilAutomaticamente(fotoBase64) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            mostrarMensagem('Você precisa estar logado para salvar a foto.', 'error');
+            return;
+        }
+        
+        // Buscar dados atuais do perfil para enviar junto com a foto
+        const perfilResponse = await fetch(`${API_URL}/perfil`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!perfilResponse.ok) {
+            mostrarMensagem('Erro ao buscar dados do perfil.', 'error');
+            return;
+        }
+        
+        const perfilData = await perfilResponse.json();
+        const usuario = perfilData.usuario;
+        
+        // Preparar dados para envio (incluir dados obrigatórios)
+        const bodyData = {
+            endereco: usuario.endereco || '',
+            telefone: usuario.telefone || '',
+            cep: usuario.cep || null,
+            estado_civil: usuario.estado_civil || null,
+            foto_perfil: fotoBase64
+        };
+        
+        const response = await fetch(`${API_URL}/perfil/completo`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(bodyData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensagem('Foto de perfil salva com sucesso!', 'success');
+        } else {
+            mostrarMensagem(data.erro || 'Erro ao salvar foto de perfil.', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar foto de perfil:', error);
+        mostrarMensagem('Erro ao salvar foto de perfil. Tente novamente.', 'error');
+    }
+}
+
+function removerFotoPerfil() {
+    const fotoPerfilImg = document.getElementById('fotoPerfilImg');
+    const fotoPerfilPlaceholder = document.getElementById('fotoPerfilPlaceholder');
+    const btnEscolherFoto = document.getElementById('btnEscolherFoto');
+    const btnEditarFoto = document.getElementById('btnEditarFoto');
+    const fotoPerfilInput = document.getElementById('fotoPerfilInput');
+    
+    // Usar string vazia para indicar que a foto deve ser removida (será tratado como null no backend)
+    fotoPerfilBase64 = '';
+    
+    if (fotoPerfilImg) {
+        fotoPerfilImg.src = '';
+        fotoPerfilImg.style.display = 'none';
+    }
+    if (fotoPerfilPlaceholder) {
+        fotoPerfilPlaceholder.style.display = 'flex';
+    }
+    // Mostrar "Escolher foto" e ocultar "Editar Foto"
+    if (btnEscolherFoto) {
+        btnEscolherFoto.style.display = 'inline-block';
+    }
+    if (btnEditarFoto) {
+        btnEditarFoto.style.display = 'none';
+    }
+    if (fotoPerfilInput) {
+        fotoPerfilInput.value = '';
+    }
+}
+
+function carregarFotoPerfil(fotoBase64) {
+    if (!fotoBase64) {
+        removerFotoPerfil();
+        return;
+    }
+    
+    const fotoPerfilImg = document.getElementById('fotoPerfilImg');
+    const fotoPerfilPlaceholder = document.getElementById('fotoPerfilPlaceholder');
+    const btnEscolherFoto = document.getElementById('btnEscolherFoto');
+    const btnEditarFoto = document.getElementById('btnEditarFoto');
+    
+    fotoPerfilBase64 = fotoBase64; // Armazenar base64 existente
+    
+    if (fotoPerfilImg && fotoPerfilPlaceholder) {
+        // Verificar se a foto já tem o prefixo data:image/ ou se precisa adicionar
+        let fotoSrc = fotoBase64;
+        if (!fotoBase64.startsWith('data:image/')) {
+            // Se não tiver o prefixo, adicionar (assumindo que é JPEG)
+            fotoSrc = `data:image/jpeg;base64,${fotoBase64}`;
+        }
+        fotoPerfilImg.src = fotoSrc;
+        fotoPerfilImg.style.display = 'block';
+        fotoPerfilPlaceholder.style.display = 'none';
+        
+        // Ocultar "Escolher foto" e mostrar "Editar Foto"
+        if (btnEscolherFoto) {
+            btnEscolherFoto.style.display = 'none';
+        }
+        if (btnEditarFoto) {
+            btnEditarFoto.style.display = 'inline-block';
+        }
+    }
+}
+// Tornar funções globais para uso no HTML
+window.previewFotoPerfil = previewFotoPerfil;
+window.removerFotoPerfil = removerFotoPerfil;
+
+// Modal Esqueci a Senha
+document.addEventListener('DOMContentLoaded', () => {
+    const forgotPasswordLink = document.getElementById('forgotPassword');
+    const modalEsqueciSenha = document.getElementById('modalEsqueciSenha');
+    const fecharModalEsqueciSenha = document.getElementById('fecharModalEsqueciSenha');
+    const cancelarEsqueciSenha = document.getElementById('cancelarEsqueciSenha');
+    const formEsqueciSenha = document.getElementById('formEsqueciSenha');
+    const mensagemEsqueciSenha = document.getElementById('mensagemEsqueciSenha');
+    
+    // Abrir modal quando clicar em "Esqueci a senha"
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (modalEsqueciSenha) {
+                modalEsqueciSenha.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Função para fechar modal e limpar dados
+    function fecharModalRecuperacao() {
+        if (modalEsqueciSenha) {
+            modalEsqueciSenha.style.display = 'none';
+        }
+        if (mensagemEsqueciSenha) {
+            mensagemEsqueciSenha.style.display = 'none';
+        }
+        if (formEsqueciSenha) {
+            formEsqueciSenha.reset();
+        }
+    }
+    
+    // Fechar modal quando clicar no X
+    if (fecharModalEsqueciSenha) {
+        fecharModalEsqueciSenha.addEventListener('click', fecharModalRecuperacao);
+    }
+    
+    // Fechar modal quando clicar em Cancelar
+    if (cancelarEsqueciSenha) {
+        cancelarEsqueciSenha.addEventListener('click', fecharModalRecuperacao);
+    }
+    
+    // Fechar modal quando clicar fora dele
+    if (modalEsqueciSenha) {
+        modalEsqueciSenha.addEventListener('click', (e) => {
+            if (e.target === modalEsqueciSenha) {
+                fecharModalRecuperacao();
+            }
+        });
+    }
+    
+    // Processar formulário de alteração de senha
+    if (formEsqueciSenha) {
+        formEsqueciSenha.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cpfInput = document.getElementById('cpfRecuperacao');
+            const novaSenhaInput = document.getElementById('novaSenhaRecuperacao');
+            
+            const cpf = cpfInput ? cpfInput.value.replace(/\D/g, '') : '';
+            const novaSenha = novaSenhaInput ? novaSenhaInput.value : '';
+            
+            // Validações
+            if (!cpf || cpf.length !== 11) {
+                mostrarMensagemNoModal('Por favor, digite um CPF válido.', 'error');
+                return;
+            }
+            
+            if (!novaSenha || novaSenha.length < 6) {
+                mostrarMensagemNoModal('A nova senha deve ter pelo menos 6 caracteres.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/recuperar-senha`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cpf, novaSenha })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarMensagemNoModal(data.mensagem || 'Senha alterada com sucesso!', 'success');
+                    // Limpar formulário após sucesso
+                    setTimeout(() => {
+                        if (formEsqueciSenha) {
+                            formEsqueciSenha.reset();
+                        }
+                        if (modalEsqueciSenha) {
+                            modalEsqueciSenha.style.display = 'none';
+                        }
+                        if (mensagemEsqueciSenha) {
+                            mensagemEsqueciSenha.style.display = 'none';
+                        }
+                    }, 2000);
+                } else {
+                    mostrarMensagemNoModal(data.erro || 'Erro ao alterar senha.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar senha:', error);
+                mostrarMensagemNoModal('Erro ao conectar com o servidor. Tente novamente mais tarde.', 'error');
+            }
+        });
+    }
+    
+    // Formatar CPF enquanto digita
+    const cpfRecuperacao = document.getElementById('cpfRecuperacao');
+    if (cpfRecuperacao) {
+        cpfRecuperacao.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            }
+        });
+    }
+    
+    // Função para mostrar mensagem no modal
+    function mostrarMensagemNoModal(mensagem, tipo) {
+        if (!mensagemEsqueciSenha) return;
+        
+        mensagemEsqueciSenha.textContent = mensagem;
+        mensagemEsqueciSenha.style.display = 'block';
+        
+        if (tipo === 'success') {
+            mensagemEsqueciSenha.style.background = 'rgba(81, 211, 160, 0.2)';
+            mensagemEsqueciSenha.style.border = '1px solid rgba(81, 211, 160, 0.4)';
+            mensagemEsqueciSenha.style.color = '#51D3A0';
+        } else {
+            mensagemEsqueciSenha.style.background = 'rgba(220, 53, 69, 0.2)';
+            mensagemEsqueciSenha.style.border = '1px solid rgba(220, 53, 69, 0.4)';
+            mensagemEsqueciSenha.style.color = '#dc3545';
+        }
+    }
+});
